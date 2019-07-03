@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"fmt"
 	"net/http"
 	"github.com/elazarl/go-bindata-assetfs"
 	"scrapyd-admin/resource/assets"
@@ -13,11 +12,11 @@ import (
 func Register(e *gin.Engine) {
 	//静态资源
 	e.GET("/assets/*path", func(c *gin.Context) {
-		fmt.Println(c.Param("path"))
 		http.FileServer(
 			&assetfs.AssetFS{Asset: assets.Asset, AssetDir: assets.AssetDir, AssetInfo: assets.AssetInfo, Prefix: ""}).ServeHTTP(c.Writer, c.Request)
 
 	})
+	e.GET("/", new(Index).Index)
 	e.GET("/login", new(Index).Login)
 	e.POST("/login", new(Index).DoLogin)
 	e.Use(core.CheckLoginStatus(new(core.WebAuth)))
