@@ -1,0 +1,113 @@
+{{define "spider/index"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">爬虫管理</h3>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        列表
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div class="row">
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>项目</label>
+                        <select class="form-control kt-selectpicker" id="project_id" onchange="vq.common.getVersionsByProjectId(this.value, 'version', '全部版本')">
+                            <option value="0">全部服项目</option>
+                            {{range .projects}}
+                                <option value="{{.Id}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>版本号</label>
+                        <select class="form-control kt-selectpicker" id="version" >
+                            <option value="">全部版本</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="kt-separator kt-separator--border-dashed kt-separator--space-md"></div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button class="btn btn-primary btn-brand--icon" type="button" onclick="reloadDatatable()">
+                            <span>
+                                <i class="la la-search"></i>
+                                <span>搜索</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="kt-portlet__body kt-portlet__body--fit">
+                <div class="kt-datatable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+
+<script>
+    var datatableObj;
+    $(function(){
+        // $.fn.editable.defaults.mode = 'inline' ;
+        datatableObj = $('.kt-datatable').KTDatatable({
+            data: {
+                type: 'remote',
+                source: {
+                    read: {
+                        url: '/spider/spider/index',
+                        params: function(d){
+                            d.project_id = $("#project_id").val();
+                            d.version = $("#version").val();
+                        }
+                    },
+                },
+                saveState: false,
+            },
+            columns: [
+                {
+                    field: 'name',
+                    title: '爬虫名称',
+                }, {
+                    field: 'project_name',
+                    title: '所属项目'
+                }, {
+                    field: 'version',
+                    title: '版本号',
+                }, {
+                    field: 'status',
+                    title: '状态',
+                    template: function(row, index, datatable){
+                        if (row.status == 1){
+                            return `<span class="kt-font-success">使用中</span>`;
+                        }else {
+                            return `<span class="kt-font-danger">已废弃</span>`;
+                        }
+                    }
+                }, {
+                    field: 'create_time',
+                    overflow: 'visible',
+                    autoHide: false,
+                    width: 150,
+                    title: '添加时间',
+                }],
+        });
+    });
+</script>
+{{end}}

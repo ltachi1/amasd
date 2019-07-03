@@ -1,0 +1,105 @@
+{{define "project/index"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">项目管理</h3>
+        </div>
+        <div class="kt-subheader__toolbar">
+            <div class="kt-subheader__wrapper">
+                <a href="/project/project/add" class="btn btn-brand btn-elevate btn-icon-sm">
+                    <i class="la la-plus"></i>
+                    添加项目
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        列表
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div class="row">
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>通过服务器筛选</label>
+                        <select class="form-control kt-selectpicker" id="server_id" onchange="reloadDatatable()">
+                            <option value="0">全部服务器</option>
+                            {{range .servers}}
+                                <option value="{{.Id}}">{{.Host}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="kt-portlet__body kt-portlet__body--fit">
+                <div class="kt-datatable"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script>
+    var datatablesObj;
+    $(function(){
+        //$.fn.editable.defaults.mode = 'inline' ;
+        datatableObj = $('.kt-datatable').KTDatatable({
+            data: {
+                type: 'remote',
+                source: {
+                    read: {
+                        url: '/project/project/index',
+                        params: function(d){
+                            d.server_id = $("#server_id").val();
+                        }
+                    },
+                },
+                saveState: false,
+            },
+            columns: [
+                {
+                    field: 'name',
+                    title: '名称',
+                }, {
+                    field: 'last_version',
+                    title: '最后版本号'
+                }, {
+                    field: 'update_time',
+                    title: '最后更新时间',
+                }, {
+                    field: '',
+                    overflow: 'visible',
+                    autoHide: false,
+                    width: 70,
+                    title: '操作',
+                    template:function(row, index, datatable){
+                        return `<span class="dropdown">
+                            <a href="#" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown" aria-expanded="true">
+                              <i class="fa fa-ellipsis-h"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="/project/project/editVersion?id=` + row.id + `"><i class="la la-edit"></i> 更新项目文件</a>
+                                <a class="dropdown-item" href="/project/project/editServers?id=` + row.id + `"><i class="la la-leaf"></i> 更新关联服务器</a>
+                            </div>
+                        </span>
+                        `;
+                        //<button data-href="/project/project/del?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md" onclick="vq.common.get(this)" title="删除"><i class="la la-trash"></i></button>
+                    }
+                }],
+        });
+    });
+</script>
+{{end}}

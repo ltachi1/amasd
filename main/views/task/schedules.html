@@ -1,0 +1,157 @@
+{{define "task/schedules"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">计划任务</h3>
+            <span class="kt-subheader__separator kt-subheader__separator--v"></span>
+            <span class="kt-subheader__desc">任务管理</span>
+        </div>
+        <div class="kt-subheader__toolbar">
+            <div class="kt-subheader__wrapper">
+                <a href="/task/task/addSchedules" class="btn btn-brand btn-elevate btn-icon-sm">
+                    <i class="la la-plus"></i>
+                    添加计划任务
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        列表
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div class="row">
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>项目</label>
+                        <select class="form-control kt-selectpicker" id="project_id" onchange="vq.common.getVersionsByProjectId(this.value, 'version', '全部版本')">
+                            <option value="0">全部服项目</option>
+                            {{range .projects}}
+                                <option value="{{.Id}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>版本号</label>
+                        <select class="form-control kt-selectpicker" id="version" >
+                            <option value="">全部版本</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>服务器</label>
+                        <select class="form-control kt-selectpicker" id="server_id" >
+                            <option value="0">全部服务器</option>
+                            {{range .servers}}
+                                <option value="{{.Id}}">{{.Host}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>状态</label>
+                        <select class="form-control kt-selectpicker" id="status" >
+                            <option value="">全部状态</option>
+                            <option value="enabled">启用中</option>
+                            <option value="disabled">已禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="kt-separator kt-separator--border-dashed kt-separator--space-md"></div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button class="btn btn-primary btn-brand--icon" type="button" onclick="reloadDatatable()">
+                            <span>
+                                <i class="la la-search"></i>
+                                <span>搜索</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <div class="kt-portlet__body kt-portlet__body--fit">
+                <div class="kt-datatable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script>
+    var datatableObj;
+    $(function(){
+        // $.fn.editable.defaults.mode = 'inline' ;
+        datatableObj = $('.kt-datatable').KTDatatable({
+            data: {
+                type: 'remote',
+                source: {
+                    read: {
+                        url: '/task/task/schedules',
+                        params: function(d){
+                            d.project_id = $("#project_id").val();
+                            d.version = $("#version").val();
+                            d.server_id = $("#server_id").val();
+                            d.status = $("#status").val();
+                        }
+                    },
+                },
+                saveState: false,
+            },
+            columns: [
+                {
+                    field: 'spider_name',
+                    title: '爬虫名称',
+                }, {
+                    field: 'project_name',
+                    title: '所属项目'
+                }, {
+                    field: 'version',
+                    title: '版本号',
+                    width: 50
+                }, {
+                    field: 'host',
+                    title: '所在服务器',
+                }, {
+                    field: 'cron',
+                    title: '计划周期',
+                }, {
+                    field: 'status',
+                    title: '状态',
+                    autoHide: false,
+                    template: function(row, index, datatable){
+                        if (row.status == "enabled"){
+                            return `<span class="kt-badge kt-badge--success kt-badge--inline">启用中</span>`;
+                        }else if (row.status == "disabled"){
+                            return `<span class="kt-badge kt-badge--danger kt-badge--inline">已禁用</span>`;
+                        }
+                    }
+                }, {
+                    field: '',
+                    overflow: 'visible',
+                    autoHide: false,
+                    width: 70,
+                    title: '操作',
+                    template:function(row, index, datatable){
+                        if (row.status == "enabled"){
+                            return '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'disabled\')" class="btn btn-sm btn-label-danger btn-bold">停用</button>';
+                        }else if(row.status == "disabled"){
+                            return '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'enabled\')" class="btn btn-sm btn-label-success btn-bold">启用</button>';
+                        }
+
+                    }
+                }],
+        });
+    });
+</script>
+{{end}}

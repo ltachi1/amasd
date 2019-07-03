@@ -1,0 +1,93 @@
+{{define "admin/index"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">用户管理</h3>
+        </div>
+        <div class="kt-subheader__toolbar">
+            <div class="kt-subheader__wrapper">
+                <a href="/system/admin/add" class="btn btn-brand btn-elevate btn-icon-sm">
+                    <i class="la la-plus"></i>
+                    添加用户
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        列表
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body kt-portlet__body--fit">
+                <div class="kt-datatable"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+
+<script>
+    var datatableObj;
+    $(function(){
+        datatableObj = $('.kt-datatable').KTDatatable({
+            data: {
+                type: 'remote',
+                source: {
+                    read: {
+                        url: '/system/admin/index',
+                    },
+                },
+                saveState: false,
+            },
+            columns: [
+                {
+                    field: 'email',
+                    title: '邮箱',
+                }, {
+                    field: 'real_name',
+                    title: '姓名'
+                }, {
+                    field: 'status',
+                    title: '状态',
+                    template: function(row, index, datatable){
+                        if (row.status == "enabled"){
+                            return `<button type="button" data-href="/system/admin/editStatus?id=`+row.id+`&status=disabled" data-datatable="yes" onclick="vq.common.get(this)" class="btn btn-label-success btn-sm">正常</button>`;
+                        }else {
+                            return `<button type="button" data-href="/system/admin/editStatus?id=`+row.id+`&status=enabled" data-datatable="yes" onclick="vq.common.get(this)" class="btn btn-label-danger btn-sm">隐藏</button>`;
+                        }
+                    }
+                }, {
+                    field: '',
+                    overflow: 'visible',
+                    autoHide: false,
+                    width: 70,
+                    title: '操作',
+                    template:function(row, index, datatable){
+                        return `
+                        <a href="/system/admin/edit?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md">
+                          <i class="fa fa-edit"></i>
+                        </a>
+                        <button data-href="/system/admin/del?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-datatable="yes" onclick="vq.common.get(this)" title="删除">
+                          <i class="fa fa-trash"></i>
+                        </button>`;
+                    }
+                }],
+        });
+    });
+
+</script>
+{{end}}

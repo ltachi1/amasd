@@ -1,0 +1,121 @@
+{{define "menu/add"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">菜单管理</h3>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="row">
+            <div class="col-lg-12">
+                <!--begin::Portlet-->
+                <form class="kt-form kt-form--fit" id="form" method="post" action="/system/menu/add">
+                    <div class="kt-portlet kt-portlet--last kt-portlet--responsive-mobile" id="kt_page_portlet">
+                        <div class="kt-portlet__head">
+                            <div class="kt-portlet__head-label">
+                                <h3 class="kt-portlet__head-title">添加菜单</h3>
+                            </div>
+                            <div class="kt-portlet__head-toolbar">
+                                <a href="/system/menu/index" class="btn btn-clean kt-margin-r-10">
+                                    <i class="la la-arrow-left"></i>
+                                    <span class="kt-hidden-mobile">返回</span>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-brand" name="submit" value="提交">提交</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kt-portlet__body">
+                            <div class="form-group row">
+                                <div class="col-lg-12">
+                                    <label>上级菜单 <span class="kt-font-danger">*</span></label>
+                                    <select class="form-control kt-selectpicker" name="parent_id">
+                                        <option value="0">作为一级菜单</option>
+                                        {{range .treeMenus}}
+                                            <option {{if eq $.parentId .id}}selected{{end}} value="{{.id}}">{{.name}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <label>菜单名称 <span class="kt-font-danger">*</span></label>
+                                    <input type="text" class="form-control" placeholder="输入菜单名称" name="name" maxlength="50" value="">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>模块 <span class="kt-font-danger">*</span></label>
+                                    <input type="text" class="form-control" placeholder="输入模块名称" name="app" maxlength="20" value="">
+                                </div>
+
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <label>控制器 <span class="kt-font-danger">*</span></label>
+                                    <input type="text" class="form-control" placeholder="输入控制器名称" name="controller" maxlength="20" value="">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>方法 <span class="kt-font-danger">*</span></label>
+                                    <input type="text" class="form-control" placeholder="输入方法名称" name="action" maxlength="20" value="">
+                                </div>
+
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <label>附加参数</label>
+                                    <input type="text" class="form-control" placeholder="输入附加参数" name="parameter" maxlength="50" value="">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label>图标</label>
+                                    <input type="text" class="form-control" placeholder="输入图标样式" name="icon" value="">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <label>状态</label>
+                                    <div class="kt-radio-inline">
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="status" value="1" checked> 显示
+                                            <span></span>
+                                        </label>
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="status" value="2" > 隐藏
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <!--end::Portlet-->
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script>
+    vq.common.submitForm({
+        id:'form',
+        backUrl:"/system/menu/index",
+        successInfo:'继续添加',
+        rules:{
+            'name':{required:true},'app':{required:true},'controller':{required:true},'action':{required:true}
+        },
+        messages:{
+            'name':{required:"请输入菜单名称"},'app':{required:"请输入模块"},'controller':{required:"请输入控制器"},'action':{required:"请输入方法"}
+        }
+    });
+</script>
+{{end}}

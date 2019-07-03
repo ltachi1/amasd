@@ -1,0 +1,35 @@
+#应用配置文件
+#http相关配置
+http:
+  port: 8000
+#数据库写配置
+db:
+  table_prefix:
+  master:
+    host: 127.0.0.1
+    username: root
+    password: root
+    database: scrapyd_admin
+    charset: utf8mb4
+    max_idle_conns: 5
+    max_open_conns: 14
+  slave:
+    max_idle_conns: 6
+    max_open_conns: 20
+    list:
+    -
+      host: 127.0.0.1
+      username: root
+      password: root
+      database: scrapyd_admin
+      charset: utf8mb4
+#日志文件存放目录，请写全路径最后不要包含斜线
+businessLogPath: /data/logs
+#session有效时间以秒为单位
+sessionExpires: 1800
+#session cookie名称
+sessionCookieName: GO_SESSION_ID
+#运行环境 dev | testing | production其中的一种
+env: dev
+
+

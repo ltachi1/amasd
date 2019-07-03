@@ -1,0 +1,46 @@
+{{define "index/login"}}
+{{template "layout/header"}}
+<!--begin::Page Custom Styles(used by this page) -->
+<link href="/assets/app/custom/login/login-v1.default.css" rel="stylesheet" type="text/css" />
+
+<!-- begin:: Page -->
+<div class="kt-grid kt-grid--ver kt-grid--root">
+    <div class="kt-grid kt-grid--hor kt-grid--root  kt-login kt-login--v1" id="kt_login">
+        <div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--desktop kt-grid--ver-desktop kt-grid--hor-tablet-and-mobile">
+            <div class="kt-grid__item kt-grid__item--order-tablet-and-mobile-2 kt-grid kt-grid--hor kt-login__aside" style="background-image: url(/assets/media/bg/bg-4.jpg);">
+                <div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--ver">
+                    <div class="kt-grid__item kt-grid__item--middle">
+                        <h3 class="kt-login__title">欢迎使用Scrapyd Admin</h3>
+                        <h4 class="kt-login__subtitle">Scrapyd Admin是为了更方便的管理scrapyd而诞生的</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="kt-grid__item kt-grid__item--fluid  kt-grid__item--order-tablet-and-mobile-1  kt-login__wrapper">
+                <div class="kt-login__body">
+                    <div class="kt-login__form">
+                        <div class="kt-login__title">
+                            <h3>管理后台</h3>
+                        </div>
+                        <form class="kt-form" action="/login" novalidate="novalidate" method="post">
+                            <div class="form-group">
+                                <input class="form-control" type="text" placeholder="Email" name="email" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" type="password" placeholder="Password" name="password">
+                            </div>
+                            <div class="kt-login__actions kt-align-center">
+                                <button id="kt_login_signin_submit" class="btn btn-primary btn-elevate kt-login__btn-primary">登录</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/js/jquery-validation-init.min.js" type="text/javascript"></script>
+<script src="/assets/app/custom/login/login-general.js" type="text/javascript"></script>
+{{end}}

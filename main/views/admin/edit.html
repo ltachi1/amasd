@@ -1,0 +1,92 @@
+{{define "admin/edit"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">用户管理</h3>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="row">
+            <div class="col-lg-12">
+                <!--begin::Portlet-->
+                <form class="kt-form" id="form" method="post" action="/system/admin/edit" enctype="multipart/form-data">
+                    <input type="hidden" name="id" value="{{.info.Id}}">
+                    <div class="kt-portlet kt-portlet--last kt-portlet--responsive-mobile" id="kt_page_portlet">
+                        <div class="kt-portlet__head">
+                            <div class="kt-portlet__head-label">
+                                <h3 class="kt-portlet__head-title">编辑用户</h3>
+                            </div>
+                            <div class="kt-portlet__head-toolbar">
+                                <a href="/system/admin/index" class="btn btn-clean kt-margin-r-10">
+                                    <i class="la la-arrow-left"></i>
+                                    <span class="kt-hidden-mobile">返回</span>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-brand" name="submit" value="提交">提交</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kt-portlet__body">
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">邮箱 <span class="kt-font-danger">*</span></label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入邮箱" disabled name="email" maxlength="80" value="{{.info.Email}}">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">姓名 <span class="kt-font-danger">*</span></label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="姓名" name="real_name" maxlength="20" value="{{.info.RealName}}">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">密码</label>
+                                <div class="col-9">
+                                    <input type="password" class="form-control vq-max-length" name="password" maxlength="50" value="" autocomplete="new-password">
+                                    <span class="form-text">不修改密码则无需输入</span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">确认密码</label>
+                                <div class="col-9">
+                                    <input type="password" class="form-control vq-max-length" name="confirm_password" maxlength="50" value="">
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </form>
+                <!--end::Portlet-->
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/bootstrap-maxlength/bootstrap-maxlength.min.js" type="text/javascript"></script>
+<script>
+    vq.common.submitForm({
+        id:'form',
+        backUrl:"/system/admin/index",
+        successInfo:'继续修改',
+        rules:{
+            'real_name':{required:true}
+        },
+        messages:{
+            'real_name':{required:"请输入姓名"}
+        }
+    });
+</script>
+{{end}}

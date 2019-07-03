@@ -1,0 +1,106 @@
+{{define "server/index"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">服务器管理</h3>
+        </div>
+        <div class="kt-subheader__toolbar">
+            <div class="kt-subheader__wrapper">
+                <a href="/server/server/add" class="btn btn-brand btn-elevate btn-icon-sm">
+                    <i class="la la-plus"></i>
+                    添加服务器
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        列表
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div class="row">
+                    <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
+                        <label>项目</label>
+                        <select class="form-control kt-selectpicker" id="project_id" onchange="reloadDatatable()">
+                            <option value="0">全部服项目</option>
+                            {{range .projects}}
+                                <option value="{{.Id}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="kt-portlet__body kt-portlet__body--fit">
+                <div class="kt-datatable"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script>
+    var datatableObj;
+    $(function(){
+        datatableObj = $('.kt-datatable').KTDatatable({
+            data: {
+                type: 'remote',
+                source: {
+                    read: {
+                        url: '/server/server/index',
+                        params: function(d){
+                            d.project_id = $('#project_id').val();
+                        }
+                    },
+                },
+                saveState: false,
+                serverFiltering:true
+            },
+            columns: [
+                {
+                    field: 'host',
+                    title: '地址',
+                }, {
+                    field: 'alias',
+                    title: '别名'
+                }, {
+                    field: 'status',
+                    title: '状态',
+                    template: function(row, index, datatable){
+                        if (row.status == "1"){
+                            return `<span class="kt-badge kt-badge--success kt-badge--inline">正常</span>`;
+                        }else if (row.status == "2"){
+                            return `<span class="kt-badge kt-badge--warning kt-badge--inline">故障</span>`;
+                        }
+                    }
+                }, {
+                    field: 'update_time',
+                    title: '更新时间',
+                }, {
+                    field: '',
+                    overflow: 'visible',
+                    autoHide: false,
+                    width: 50,
+                    title: '操作',
+                    template: function(row, index, datatable) {
+                        return `<a href="/system/menu/edit?id=`+row.id+`" class="btn btn-sm btn-clean btn-icon btn-icon-md" title="编辑">
+                          <i class="fa fa-edit"></i>
+                        </a>`;
+                    },
+                }],
+        });
+    });
+</script>
+{{end}}

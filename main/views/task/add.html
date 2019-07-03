@@ -1,0 +1,101 @@
+{{define "task/add"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">任务管理</h3>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="row">
+            <div class="col-lg-12">
+                <!--begin::Portlet-->
+                <form class="kt-form" id="form" method="post" action="/task/task/add">
+                    <div class="kt-portlet kt-portlet--last kt-portlet--responsive-mobile" id="kt_page_portlet">
+                        <div class="kt-portlet__head">
+                            <div class="kt-portlet__head-label">
+                                <h3 class="kt-portlet__head-title">添加普通任务</h3>
+                            </div>
+                            <div class="kt-portlet__head-toolbar">
+                                <a href="/task/general/index" class="btn btn-clean kt-margin-r-10">
+                                    <i class="la la-arrow-left"></i>
+                                    <span class="kt-hidden-mobile">返回</span>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-brand" name="submit" value="提交">提交</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kt-portlet__body">
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">项目 <span class="kt-font-danger">*</span></label>
+                                <div class="col-9">
+                                    <select class="form-control kt-selectpicker" name="project" id="project" onchange="vq.common.getSpidersAndServersByProjectId(this, 'spider', 'server')">
+                                        <option value="">请选择一个项目</option>
+                                        {{range .projects}}
+                                            <option value="{{.Id}}|{{.Name}}|{{.LastVersion}}" data-version="{{.LastVersion}}">{{.Name}} | 版本号: {{.LastVersion}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">爬虫</label>
+                                <div class="col-9">
+                                    <select class="form-control kt-selectpicker" multiple data-header="可选择多个" data-actions-box="true" id="spider" name="spider" title="请选择爬虫"></select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">服务器</label>
+                                <div class="col-9">
+                                    <select class="form-control kt-selectpicker" multiple data-header="可选择多个" data-actions-box="true" id="server" name="server" title="请选择服务器"></select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+                <!--end::Portlet-->
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script>
+    vq.common.submitForm({
+        id:'form',
+        backUrl:"/task/task/index",
+        successInfo:'继续添加',
+        rules:{
+            'project':{required:true}
+        },
+        messages:{
+            'project':{required:"请选择一个项目"}
+        },
+        fail: function(data){
+            if(data.code == 4001){
+                vq.common.error({"content": data.msg + data.errorServerList})
+            }else{
+                vq.common.error({"content": data.msg})
+            }
+        }
+    });
+    function relationServer(value){
+        if(value == "yes"){
+            $(".project-span").removeClass("kt-hidden")
+        }else{
+            $(".project-span").addClass("kt-hidden")
+        }
+    }
+</script>
+{{end}}

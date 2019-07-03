@@ -1,0 +1,111 @@
+{{define "layout/footer"}}
+
+<script>
+    var KTAppOptions = {};
+</script>
+
+
+<script src="/assets/vendors/general/jquery/dist/jquery.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/block-ui/jquery.blockUI.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/popper.js/dist/umd/popper.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/bootstrap-select/dist/js/bootstrap-select.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/perfect-scrollbar/dist/perfect-scrollbar.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/sticky-js/dist/sticky.min.js" type="text/javascript"></script>
+
+<!-- 修改过此文件 -->
+<script src="/assets/demo/default/base/scripts.bundle.min.js" type="text/javascript"></script>
+
+<script src="/assets/app/bundle/app.bundle.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/artDialog/artDialog.js"></script>
+<script src="/assets/vendors/general/artDialog/iframeTools.js"></script>
+<script src="/assets/js/common.min.js"></script>
+<script>
+    $(function(){
+        $('.kt-selectpicker').selectpicker();
+        //所有的ajax form提交,由于大多业务逻辑都是一样的，故统一处理
+        var ajaxForm_list = $('form.ajaxForm');
+        if (ajaxForm_list.length) {
+            if (!$.support.leadingWhitespace) {
+                ajaxForm_list.on('submit', function (e) {
+                    e.preventDefault();
+                });
+            }
+
+            $('button.ajax_submit_btn').on('click', function (e) {
+                e.preventDefault();
+                var btn = $(this),
+                        form = btn.parents('form.ajaxForm');
+
+                //批量操作 判断选项
+                if (btn.data('subcheck')) {
+                    btn.parent().find('span').remove();
+                    if (form.find('input.J_check:checked').length) {
+                        var msg = btn.data('msg');
+                        if (msg) {
+                            art.dialog({
+                                id: 'warning',
+                                icon: 'warning',
+                                content: btn.data('msg'),
+                                cancelVal: '关闭',
+                                cancel: function () {
+                                    btn.data('subcheck', false);
+                                    btn.click();
+                                }
+                            });
+                        } else {
+                            btn.data('subcheck', false);
+                            btn.click();
+                        }
+
+                    } else {
+                        $('<span class="tips_error">请至少选择一项</span>').appendTo(btn.parent()).fadeIn('fast');
+                    }
+                    return false;
+                }
+
+                //ie处理placeholder提交问题
+                if (!$.support.leadingWhitespace) {
+                    form.find('[placeholder]').each(function () {
+                        var input = $(this);
+                        if (input.val() == input.attr('placeholder')) {
+                            input.val('');
+                        }
+                    });
+                }
+                var loading_dialog = art.dialog({id: 'loading',fixed: true,lock: true,background: "#CCCCCC",opacity: 0,esc:false,title: false,cancel:false});
+                form.ajaxSubmit({
+                    url: btn.data('action') ? btn.data('action') : form.attr('action'), //按钮上是否自定义提交地址(多按钮情况)
+                    dataType: 'json',
+                    beforeSubmit: function (arr, $form, options) {
+                        var text = btn.text();
+                        //按钮文案、状态修改
+                        btn.prop('disabled', true).addClass('disabled');
+                    },
+                    success: function (data, statusText, xhr, $form) {
+                        var text = btn.text();
+                        //按钮文案、状态修改
+                        btn.removeClass('disabled').removeAttr('disabled');
+                        loading_dialog.close();
+                        if (data.code) {
+                            vq.common.success({content:data.msg,callback:function(){
+                                    location.reload();
+                                }});
+                        } else {
+                            vq.common.error({content:data.msg});
+                        }
+                    }
+                });
+            });
+        }
+        if($(".vq-max-length").length > 0){
+            $('.vq-max-length').maxlength();
+        }
+    })
+    function reloadDatatable(firstPage){
+        datatableObj.reload(firstPage);
+    }
+</script>
+</body>
+</html>
+{{end}}

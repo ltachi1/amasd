@@ -1,0 +1,127 @@
+{{define "project/add"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">项目管理</h3>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="row">
+            <div class="col-lg-12">
+                <!--begin::Portlet-->
+                <form class="kt-form" id="form" method="post" action="/project/project/add" enctype="multipart/form-data">
+                    <div class="kt-portlet kt-portlet--last kt-portlet--responsive-mobile" id="kt_page_portlet">
+                        <div class="kt-portlet__head">
+                            <div class="kt-portlet__head-label">
+                                <h3 class="kt-portlet__head-title">添加项目</h3>
+                            </div>
+                            <div class="kt-portlet__head-toolbar">
+                                <a href="/project/project/index" class="btn btn-clean kt-margin-r-10">
+                                    <i class="la la-arrow-left"></i>
+                                    <span class="kt-hidden-mobile">返回</span>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-brand" name="submit" value="提交">提交</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kt-portlet__body">
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">项目名称 <span class="kt-font-danger">*</span></label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入项目名称" name="name" maxlength="20" value="">
+                                    <span class="form-text">不超过20个字符,名称不可修改</span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">版本号</label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入版本号" name="lastVersion" maxlength="20" value="">
+                                    <span class="form-text">不超过20个字符，不填默认为时间戳</span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">关联现有服务器</label>
+                                <div class="col-9">
+                                    <div class="kt-radio-inline">
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="relation" value="no" checked onclick="relationServer('no')"> 否
+                                            <span></span>
+                                        </label>
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="relation" value="yes" onclick="relationServer('yes')"> 是
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row kt-hidden project-span">
+                                <label class="col-2 col-form-label text-right">现有服务器</label>
+                                <div class="col-9">
+                                    <select  class="form-control kt-selectpicker" title="请选择服务器" multiple data-actions-box="true" data-live-search="true" data-header="选择一个服务器" name="serverIds" >
+                                        {{range .servers}}
+                                            <option data-subtext="{{.Alias}}" value="{{.Id}}">{{.Host}}</option>
+                                        {{end}}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row kt-hidden project-span">
+                                <label class="col-2 col-form-label text-right">项目文件</label>
+                                <div class="col-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" name="customFile" id="customFile" value="浏览">
+                                        <label class="custom-file-label" for="customFile">选择文件</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+                <!--end::Portlet-->
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/bootstrap-maxlength/bootstrap-maxlength.min.js" type="text/javascript"></script>
+<script>
+    vq.common.submitForm({
+        id:'form',
+        backUrl:"/project/project/index",
+        successInfo:'继续添加',
+        rules:{
+            'name':{required:true}
+        },
+        messages:{
+            'name':{required:"请输入项目名称"}
+        },
+        fail: function(data){
+            if(data.code == 4001){
+                vq.common.error({"content": data.msg + data.errorServerList})
+            }else{
+                vq.common.error({"content": data.msg})
+            }
+        }
+    });
+    function relationServer(value){
+        if(value == "yes"){
+            $(".project-span").removeClass("kt-hidden")
+        }else{
+            $(".project-span").addClass("kt-hidden")
+        }
+    }
+</script>
+{{end}}
