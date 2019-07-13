@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"net/http"
-	"scrapyd-admin/config"
 	"scrapyd-admin/core"
 	"scrapyd-admin/models"
 )
@@ -15,12 +14,12 @@ type Index struct {
 }
 
 func (i *Index) Index(c *gin.Context) {
-	sm := new(models.SystemMenu)
+	sm := new(models.Menu)
 	passport := core.GetPassportInstance()
 	c.HTML(http.StatusOK, "index/index", gin.H{
-		"menuStr":  template.HTML(sm.GetMenuStr()),
-		"realName": passport.RealName,
-		"id":       passport.Id,
+		"menuStr":     template.HTML(sm.GetMenuStr()),
+		"displayName": passport.DisplayName,
+		"id":          passport.Id,
 	})
 }
 
@@ -38,12 +37,12 @@ func (i *Index) DoLogin(c *gin.Context) {
 	if err := c.ShouldBind(&admin); err == nil {
 		ok, code := admin.Login()
 		if !ok {
-			i.Fail(c, config.PromptMsg[code])
+			i.Fail(c, core.PromptMsg[code])
 			return
 		}
 		i.Success(c)
 	} else {
-		i.Fail(c, config.PromptMsg["system_error"])
+		i.Fail(c, core.PromptMsg["fail"])
 	}
 }
 

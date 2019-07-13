@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type SystemMenu struct {
+type Menu struct {
 	core.BaseModel      `xorm:"-"`
 	Id           int    `xorm:"pk autoincr" json:"id" form:"id"`
 	Name         string `json:"name" form:"name"`
@@ -18,7 +18,6 @@ type SystemMenu struct {
 	Action       string `json:"action" form:"action"`
 	Parameter    string `json:"parameter" form:"parameter"`
 	Icon         string `json:"icon" form:"icon"`
-	Type         string `json:"type" form:"type"`
 	Status       int    `json:"status" form:"status"`
 	ListingOrder int    `json:"listing_order" form:"listing_order"`
 }
@@ -29,22 +28,22 @@ const (
 )
 
 //更新数据
-func (s *SystemMenu) Insert() bool {
-	_, error := core.DBPool.Master().InsertOne(s)
+func (s *Menu) Insert() bool {
+	_, error := core.Db.InsertOne(s)
 	if error != nil {
 		return false
 	}
 	return true
 }
 
-func (s *SystemMenu) Update(id int, data core.A) error {
-	_, error := core.DBPool.Master().Table(s).ID(id).Update(data)
+func (s *Menu) Update(id int, data core.A) error {
+	_, error := core.Db.Table(s).ID(id).Update(data)
 	return error
 }
 
 //删除菜单
-func (s *SystemMenu) DeleteById() bool {
-	_, error := core.DBPool.Master().Id(s.Id).Delete(s)
+func (s *Menu) DeleteById() bool {
+	_, error := core.Db.Id(s.Id).Delete(s)
 	if error != nil {
 		return false
 	}
@@ -52,10 +51,10 @@ func (s *SystemMenu) DeleteById() bool {
 }
 
 //获取子菜单
-func (s *SystemMenu) getChildMenuList(parentId int) []SystemMenu {
+func (s *Menu) getChildMenuList(parentId int) []Menu {
 	accessList := core.GetRbacInstance().GetCurrentUserAccessList()
-	menus, overMenus := make([]SystemMenu, 0), make([]SystemMenu, 0)
-	if err := core.DBPool.Slave().Where("parent_id = ? and status = ? ", parentId, MenuStatusEnable).OrderBy("listing_order asc, id asc").Find(&menus); err == nil {
+	menus, overMenus := make([]Menu, 0), make([]Menu, 0)
+	if err := core.Db.Where("parent_id = ? and status = ? ", parentId, MenuStatusEnable).OrderBy("listing_order asc, id asc").Find(&menus); err == nil {
 		if core.GetPassportInstance().IsAdminRole() {
 			return menus
 		}
@@ -69,7 +68,7 @@ func (s *SystemMenu) getChildMenuList(parentId int) []SystemMenu {
 }
 
 //验证当前登录的用户是否对此菜单有操作权限
-func (s *SystemMenu) hasCompetence(app string, controller string, action string, accessList map[string]map[string]map[string]string) bool {
+func (s *Menu) hasCompetence(app string, controller string, action string, accessList map[string]map[string]map[string]string) bool {
 	actionRegexp := regexp.MustCompile(`^public`)
 	if actionRegexp.MatchString(action) {
 		return true
@@ -81,7 +80,7 @@ func (s *SystemMenu) hasCompetence(app string, controller string, action string,
 }
 
 //获取后台管理员所有用的菜单
-func (s *SystemMenu) GetMenuStr() string {
+func (s *Menu) GetMenuStr() string {
 	menus := s.getTree(0, 1)
 	str := ""
 	for i := 0; i < len(menus); i++ {
@@ -147,7 +146,7 @@ func (s *SystemMenu) GetMenuStr() string {
 //}
 
 //获取下级菜单字符串
-func (s *SystemMenu) GetSubMenuStr(items []core.A, str *string) {
+func (s *Menu) GetSubMenuStr(items []core.A, str *string) {
 	for i := 0; i < len(items); i++ {
 		if _, exists := items[i]["items"]; exists {
 			*str += `
@@ -185,7 +184,7 @@ func (s *SystemMenu) GetSubMenuStr(items []core.A, str *string) {
 	}
 }
 
-func (s *SystemMenu) getTree(parentId int, level int) []core.A {
+func (s *Menu) getTree(parentId int, level int) []core.A {
 	menus := s.getChildMenuList(parentId)
 	ret := make([]core.A, 0)
 	level++
@@ -215,17 +214,17 @@ func (s *SystemMenu) getTree(parentId int, level int) []core.A {
 }
 
 //获取所有菜单
-func (s *SystemMenu) TreeMenus() []core.A {
-	menus := make([]SystemMenu, 0)
-	core.DBPool.Slave().OrderBy("listing_order asc, id asc").Find(&menus)
+func (s *Menu) TreeMenus() []core.A {
+	menus := make([]Menu, 0)
+	core.Db.OrderBy("listing_order asc, id asc").Find(&menus)
 	menuTree := GetMenuTreeInstance(menus)
 	menuTree.GetTree(0, "")
 	return menuTree.FinalMenus
 }
 
 //获取菜单信息
-func (s *SystemMenu) Get(id int) bool {
-	ok, _ := core.DBPool.Slave().Where("id = ?", id).Get(s)
+func (s *Menu) Get(id int) bool {
+	ok, _ := core.Db.Where("id = ?", id).Get(s)
 	return ok
 }
 
@@ -233,11 +232,11 @@ func (s *SystemMenu) Get(id int) bool {
 type MenuTree struct {
 	icon       []string
 	nbsp       string
-	menus      []SystemMenu
+	menus      []Menu
 	FinalMenus []core.A
 }
 
-func GetMenuTreeInstance(menus []SystemMenu) MenuTree {
+func GetMenuTreeInstance(menus []Menu) MenuTree {
 	return MenuTree{
 		icon:  []string{"&nbsp;&nbsp;&nbsp;│ ", "&nbsp;&nbsp;&nbsp;├─ ", "&nbsp;&nbsp;&nbsp;└─ "},
 		nbsp:  "&nbsp;&nbsp;&nbsp;",
@@ -246,8 +245,8 @@ func GetMenuTreeInstance(menus []SystemMenu) MenuTree {
 }
 
 //获取下级所有菜单
-func (m *MenuTree) getChildren(parentId int) []SystemMenu {
-	children := make([]SystemMenu, 0)
+func (m *MenuTree) getChildren(parentId int) []Menu {
+	children := make([]Menu, 0)
 	for i := 0; i < len(m.menus); i++ {
 		if m.menus[i].ParentId == parentId {
 			children = append(children, m.menus[i])

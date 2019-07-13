@@ -90,12 +90,7 @@
                 <div class="kt-separator kt-separator--border-dashed kt-separator--space-md"></div>
                 <div class="row">
                     <div class="col-lg-12">
-                        <button class="btn btn-primary btn-brand--icon" type="button" onclick="reloadDatatable()">
-                            <span>
-                                <i class="la la-search"></i>
-                                <span>搜索</span>
-                            </span>
-                        </button>
+                        <button class="btn btn-primary" type="button" onclick="reloadDatatable()">搜索</button>
                     </div>
                 </div>
 
@@ -106,6 +101,8 @@
                     <div class="col-lg-12">
                         <button type="button" class="btn btn-danger btn-sm kt-hidden stop-selected">停止已选择</button>
                         <button type="button" class="btn btn-danger btn-sm kt-hidden stop-all">停止所有筛选结果</button>
+                        <button type="button" class="btn btn-danger btn-sm kt-hidden del-selected">删除已选择</button>
+                        <button type="button" class="btn btn-danger btn-sm kt-hidden del-all">删除所有筛选结果</button>
                     </div>
                 </div>
             </div>
@@ -139,12 +136,16 @@
                                 var status = $("#task-status .active").attr("data-status");
                                 if(canOperate(status)) {
                                     $(".stop-all").removeClass("kt-hidden");
+                                    $(".del-all").addClass("kt-hidden");
                                 } else {
                                     $(".stop-all").addClass("kt-hidden");
+                                    $(".del-all").removeClass("kt-hidden");
                                 }
                             } else {
                                 $(".stop-selected").addClass("kt-hidden");
                                 $(".stop-all").addClass("kt-hidden");
+                                $(".del-selected").addClass("kt-hidden");
+                                $(".del-all").addClass("kt-hidden");
                             }
                             return data.data;
                         }
@@ -158,15 +159,16 @@
                     var status = $("#task-status .active").attr("data-status");
                     if(canOperate(status)) {
                         $(".stop-selected").removeClass("kt-hidden");
+                        $(".del-selected").addClass("kt-hidden");
                     } else {
                         $(".stop-selected").addClass("kt-hidden");
+                        $(".del-selected").removeClass("kt-hidden");
                     }
                 },
                 unselect: function(row, datatable){
                     if (datatableObj.getSelectedRecords().length == 0){
                         $(".stop-selected").addClass("kt-hidden");
-                    } else {
-                        $(".stop-selected").removeClass("kt-hidden");
+                        $(".del-selected").addClass("kt-hidden");
                     }
                 }
             },
@@ -232,37 +234,32 @@
                     title: '操作',
                     template:function(row, index, datatable){
                         if (row.status == "pending" || row.status == "running"){
-                            return '<button type="button" data-href="/task/task/cancel?id='+row.id+'" data-msg="确定要停止吗?" data-datatable="true" onclick="vq.common.get(this)" class="btn btn-sm btn-label-danger btn-bold">停止</button>';
+                            return '<button type="button" data-href="/task/task/cancel?id='+row.id+'" data-msg="确定要停止吗?" data-datatable="yes" onclick="vq.common.get(this)" class="btn btn-sm btn-label-danger btn-bold">停止</button>';
                         }else{
-                            return '<button type="button" disabled class="btn btn-sm btn-label-danger btn-bold">无</button>';
+                            return '<button type="button" data-href="/task/task/del?id='+row.id+'" data-msg="确定要停止吗?" data-datatable="yes" onclick="vq.common.get(this)" class="btn btn-sm btn-label-danger btn-bold">删除</button>';
                         }
-
                     }
                 }
             ]
         });
         $("#task-status a").on("click", function(){
-            var _this = $(this);
-            var status = _this.attr("data-status");
-            if (!_this.hasClass("active")){
-                if (canOperate(status)) {
-                    //待运行或者运行中的任务才可以进行选择
-                    $(".kt-datatable [data-field='checkbox'] .kt-checkbox").removeClass("kt-checkbox--disabled");
-                    $(".kt-datatable [data-field='checkbox'] .kt-checkbox input").removeAttr("disabled");
-                    datatableObj.setOption('columns.0.selector', {});
-                } else {
-                    $(".kt-datatable [data-field='checkbox'] .kt-checkbox").addClass("kt-checkbox--disabled");
-                    $(".kt-datatable [data-field='checkbox'] .kt-checkbox input").attr("disabled", "disabled");
-                    datatableObj.setOption('columns.0.selector', {disabled : true, class: "kt-checkbox--disabled"});
-                }
-                reloadDatatable();
-            }
+            $(".stop-selected").addClass("kt-hidden");
+            $(".del-selected").addClass("kt-hidden");
+            $(".stop-all").addClass("kt-hidden");
+            $(".del-all").addClass("kt-hidden");
+            reloadDatatable();
         });
         $(".stop-selected").on("click", function(){
             vq.common.stopSelectedTask();
         });
         $(".stop-all").on("click", function(){
             vq.common.stopAllTask()
+        });
+        $(".del-selected").on("click", function(){
+            vq.common.delSelectedTask();
+        });
+        $(".del-all").on("click", function(){
+            vq.common.delAllTask()
         });
 
     });

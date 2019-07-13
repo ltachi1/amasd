@@ -6,13 +6,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"scrapyd-admin/config"
 )
 
 func AesEncrypt(orig string) string {
 	// 转成字节数组
 	origData := []byte(orig)
-	k := []byte(config.AesSalt)
+	k := []byte(AesSalt)
 
 	// 分组秘钥
 	block, _ := aes.NewCipher(k)
@@ -34,7 +33,7 @@ func AesEncrypt(orig string) string {
 func AesDecrypt(cryted string) string {
 	// 转成字节数组
 	crytedByte, _ := base64.StdEncoding.DecodeString(cryted)
-	k := []byte(config.AesSalt)
+	k := []byte(AesSalt)
 
 	// 分组秘钥
 	block, _ := aes.NewCipher(k)

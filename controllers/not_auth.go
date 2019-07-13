@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"scrapyd-admin/config"
 	"scrapyd-admin/core"
 	"scrapyd-admin/models"
 	"strconv"
@@ -17,7 +16,7 @@ type NotAuth struct {
 func (n *NotAuth) GetVersionsByProjectId(c *gin.Context) {
 	projectId, _ := strconv.Atoi(c.DefaultQuery("project_id", "0"))
 	if projectId <= 0 {
-		n.Fail(c, config.PromptMsg["parameter_error"])
+		n.Fail(c, core.PromptMsg["parameter_error"])
 		return
 	}
 	projectHistory := models.ProjectHistory{
@@ -31,7 +30,7 @@ func (n *NotAuth) GetVersionsByProjectId(c *gin.Context) {
 func (n *NotAuth) GetSpidersAndServersByProjectId(c *gin.Context) {
 	project := c.DefaultQuery("project", "")
 	if project == "" {
-		n.Fail(c, config.PromptMsg["parameter_error"])
+		n.Fail(c, core.PromptMsg["parameter_error"])
 		return
 	}
 	projectInfo := strings.Split(project, "|")

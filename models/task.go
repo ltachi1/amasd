@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"scrapyd-admin/config"
 	"github.com/ltachi1/logrus"
 	"sync"
 )
@@ -28,6 +27,7 @@ type Task struct {
 	Status      string         `json:"status"`
 }
 
+//Status 运行状态 error | pending | running | cancelled | finished
 var (
 	TaskTypeOnce        uint8 = 1 //一次性任务
 	TaskTypeTiming      uint8 = 2 //定时任务
@@ -40,7 +40,15 @@ var (
 
 //查询项目下是否有正在运行的爬虫，包括定时任务
 func (t *Task) HaveRunning(projectId int) bool {
-	count, _ := core.DBPool.Slave().Where("project_id = ? and (status = ? or status = ?)", projectId, TaskStatusPending, TaskStatusRunning).Table("task").Count()
+	count, _ := core.Db.Where("project_id = ? and (status = ? or status = ?)", projectId, TaskStatusPending, TaskStatusRunning).Table("task").Count()
+	if count > 0 {
+		return true
+	}
+	return false
+}
+
+func (t *Task) HaveRunningByServer(serverId int) bool {
+	count, _ := core.Db.Where("server_id = ? and (status = ? or status = ?)", serverId, TaskStatusPending, TaskStatusRunning).Table("task").Count()
 	if count > 0 {
 		return true
 	}
@@ -66,7 +74,7 @@ func (t *Task) Inert(projectId int, projectName string, version string, spiderLi
 				Host:        se[1],
 				Status:      TaskStatusPending,
 			}
-			_, error := core.DBPool.Master().InsertOne(&task)
+			_, error := core.Db.InsertOne(&task)
 			if error == nil {
 				t.RunTask(task.Id)
 			} else {
@@ -81,7 +89,7 @@ func (t *Task) Inert(projectId int, projectName string, version string, spiderLi
 }
 
 func (t *Task) InertOne() {
-	if _, error := core.DBPool.Master().InsertOne(t); error == nil {
+	if _, error := core.Db.InsertOne(t); error == nil {
 		t.RunTask(t.Id)
 	}
 }
@@ -89,7 +97,7 @@ func (t *Task) InertOne() {
 //运行任务
 func (t *Task) RunTask(taskId int) {
 	task := core.B{}
-	if ok, _ := core.DBPool.Slave().Select("t.*,s.auth,s.username,s.password,s.status").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("t.id = ?", taskId).Limit(1).Get(&task); ok {
+	if ok, _ := core.Db.Select("t.*,s.auth,s.username,s.password,s.status").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("t.id = ?", taskId).Limit(1).Get(&task); ok {
 		serverStatus, _ := strconv.Atoi(task["status"])
 		if uint8(serverStatus) == ServerStatusNormal {
 			auth, _ := strconv.Atoi(task["auth"])
@@ -101,12 +109,12 @@ func (t *Task) RunTask(taskId int) {
 				scrapyd.Password = task["password"]
 			}
 			if ok, jobId := scrapyd.Schedule(task["project_name"], task["version"], task["spider_name"]); ok {
-				core.DBPool.Master().Id(taskId).Update(&Task{Status: TaskStatusRunning, JobId: jobId, StartTime: core.Timestamp(time.Now().Unix())})
+				core.Db.Id(taskId).Update(&Task{Status: TaskStatusRunning, JobId: jobId, StartTime: core.Timestamp(time.Now().Unix())})
 			} else {
-				core.DBPool.Master().Id(taskId).Update(&Task{Status: TaskStatusError, EndTime: core.Timestamp(time.Now().Unix())})
+				core.Db.Id(taskId).Update(&Task{Status: TaskStatusError, StartTime: core.Timestamp(time.Now().Unix()), EndTime: core.Timestamp(time.Now().Unix())})
 			}
 		} else {
-			core.DBPool.Master().Id(taskId).Update(&Task{Status: TaskStatusError, EndTime: core.Timestamp(time.Now().Unix())})
+			core.Db.Id(taskId).Update(&Task{Status: TaskStatusError, StartTime: core.Timestamp(time.Now().Unix()), EndTime: core.Timestamp(time.Now().Unix())})
 		}
 	}
 }
@@ -114,8 +122,8 @@ func (t *Task) RunTask(taskId int) {
 //分页获取任务列表
 func (t *Task) FindTaskPages(projectId int, version string, serverId int, status string, page int, pageSize int) ([]core.B, int) {
 	tasks := make([]core.B, 0)
-	countObj := core.DBPool.Slave().Table("task")
-	selectObj := core.DBPool.Slave().Table("task")
+	countObj := core.Db.Table("task")
+	selectObj := core.Db.Table("task")
 	if projectId > 0 {
 		countObj.Where("project_id = ? ", projectId)
 		selectObj.Where("project_id = ? ", projectId)
@@ -157,7 +165,7 @@ func (t *Task) FindTaskPages(projectId int, version string, serverId int, status
 //取消单个任务
 func (t *Task) Cancel(id int) bool {
 	if t.ProjectName == "" || t.JobId == "" {
-		if ok, _ := core.DBPool.Slave().Select("id,project_name,server_id,job_id").Where("id = ? and (status = ? or status = ?)", id, TaskStatusPending, TaskStatusRunning).NoAutoCondition().Get(t); !ok {
+		if ok, _ := core.Db.Select("id,project_name,server_id,job_id").Where("id = ? and (status = ? or status = ?)", id, TaskStatusPending, TaskStatusRunning).NoAutoCondition().Get(t); !ok {
 			return false
 		}
 	}
@@ -180,7 +188,7 @@ func (t *Task) Cancel(id int) bool {
 	if !scrapyd.Cancel(t.ProjectName, t.JobId) {
 		return false
 	}
-	if _, error := core.DBPool.Master().Id(id).Update(&Task{Status: TaskStatusCancelled, EndTime: core.Timestamp(time.Now().Unix())}); error != nil {
+	if _, error := core.Db.Id(id).Update(&Task{Status: TaskStatusCancelled, EndTime: core.Timestamp(time.Now().Unix())}); error != nil {
 		return false
 	}
 	return true
@@ -212,7 +220,7 @@ func (t *Task) CancelMulti(ids []string) (bool, []string) {
 func (t *Task) CancelAll(projectId int, version string, serverId int, status string) (bool, []string) {
 	failureList := make([]string, 0)
 	tasks := make([]Task, 0)
-	obj := core.DBPool.Slave().Table("task")
+	obj := core.Db.Table("task")
 	if projectId > 0 {
 		obj.Where("project_id = ? ", projectId)
 	}
@@ -245,9 +253,45 @@ func (t *Task) CancelAll(projectId int, version string, serverId int, status str
 	return true, failureList
 }
 
+//删除单个任务
+func (t *Task) Del(id int) bool {
+	if _, error := core.Db.Id(id).Delete(t); error != nil {
+		return false
+	}
+	return true
+}
+
+//删除多个任务
+func (t *Task) DelMulti(ids []string) bool {
+	if _, error := core.Db.In("id", ids).Delete(t); error != nil {
+		return false
+	}
+	return true
+}
+
+func (t *Task) DelAll(projectId int, version string, serverId int, status string) bool {
+	obj := core.Db.Where("1 = 1")
+	if projectId > 0 {
+		obj = obj.Where("project_id = ? ", projectId)
+	}
+	if version != "" {
+		obj.Where("version = ? ", version)
+	}
+	if serverId > 0 {
+		obj.Where("server_id = ? ", serverId)
+	}
+	if status != "" {
+		obj.Where("status = ? ", status)
+	}
+	if _, error := obj.NoAutoCondition().Delete(t); error != nil {
+		return false
+	}
+	return true
+}
+
 func (t *Task) DetectionStatus() {
 	taskList := make([]core.B, 0)
-	core.DBPool.Slave().Select("t.id,t.job_id,t.project_name,s.auth,s.username,s.password,s.status,s.host").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("(t.status = ? or t.status = ?) and t.job_id<>\"\"", TaskStatusPending, TaskStatusRunning).Find(&taskList)
+	core.Db.Select("t.id,t.job_id,t.project_name,s.auth,s.username,s.password,s.status,s.host").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("(t.status = ? or t.status = ?) and t.job_id<>\"\"", TaskStatusPending, TaskStatusRunning).Find(&taskList)
 	serverProjectList := make(map[string]core.B, 0)
 	serverProjectTaskList := make(map[string][]core.B, 0)
 	for _, task := range taskList {
@@ -330,8 +374,8 @@ func (t *Task) DetectionStatus() {
 	}
 	wg.Wait()
 	if len(updateTask) > 0 {
-		if _, error := core.DBPool.Master().Exec(core.JoinBatchUpdateSql("task", updateTask, "id")); error != nil {
-			core.WriteLog(config.LogTypeTask, logrus.ErrorLevel, nil, error)
+		if _, error := core.Db.Exec(core.JoinBatchUpdateSql("task", updateTask, "id")); error != nil {
+			core.WriteLog(core.LogTypeTask, logrus.ErrorLevel, nil, error)
 		}
 	}
 }

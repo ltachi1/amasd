@@ -1,4 +1,4 @@
-{{define "server/add"}}
+{{define "server/edit"}}
 {{template "layout/header"}}
 <div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
 
@@ -16,11 +16,11 @@
         <div class="row">
             <div class="col-lg-12">
                 <!--begin::Portlet-->
-                <form class="kt-form kt-form--fit" id="form" method="post" action="/server/server/add">
+                <form class="kt-form kt-form--fit" id="form" method="post" action="/server/server/edit">
                     <div class="kt-portlet kt-portlet--last kt-portlet--responsive-mobile" id="kt_page_portlet">
                         <div class="kt-portlet__head">
                             <div class="kt-portlet__head-label">
-                                <h3 class="kt-portlet__head-title">添加服务器</h3>
+                                <h3 class="kt-portlet__head-title">编辑服务器</h3>
                             </div>
                             <div class="kt-portlet__head-toolbar">
                                 <a href="/server/server/index" class="btn btn-clean kt-margin-r-10">
@@ -36,12 +36,12 @@
                             <div class="form-group row">
                                 <div class="col-lg-6">
                                     <label>别名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器别名" name="Alias" maxlength="20" value="">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器别名" name="alias" maxlength="20" value="{{.info.Alias}}">
                                     <span class="form-text">不超过20个字符</span>
                                 </div>
                                 <div class="col-lg-6">
                                     <label>访问地址 <span class="kt-font-danger">*</span></label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器访问地址" name="Host" maxlength="50" value="">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器访问地址" disabled name="host" maxlength="50" value="{{.info.Host}}">
                                     <span class="form-text">不超过50个字符，格式 ip:port</span>
                                 </div>
 
@@ -51,32 +51,32 @@
                                     <label>服务器验证</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Auth" value="1" checked onclick="relationServer('no')"> 否
+                                            <input type="radio" name="auth" value="1" {{if eq .info.Auth 1}}checked{{end}} onclick="relationServer('no')"> 否
                                             <span></span>
                                         </label>
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Auth" value="2" onclick="relationServer('yes')"> 是
+                                            <input type="radio" name="auth" value="2" {{if eq .info.Auth 2}}checked{{end}} onclick="relationServer('yes')"> 是
                                             <span></span>
                                         </label>
                                     </div>
                                 </div>
 
                             </div>
-                            <div class="form-group row auth-span kt-hidden">
+                            <div class="form-group row auth-span {{if eq .info.Auth 1}}kt-hidden{{end}}">
                                 <div class="col-lg-6">
                                     <label>用户名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器用户名" name="Username" maxlength="20" value="" autocomplete="off">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器用户名" name="username" maxlength="20" value="{{.info.Username}}" autocomplete="off">
                                     <span class="form-text">不超过20个字符，没有用户则留空</span>
                                 </div>
                                 <div class="col-lg-6">
                                     <label>密码</label>
-                                    <input type="password" class="form-control vq-max-length" placeholder="输入服务器密码" name="Password" maxlength="20" value="" autocomplete="new-password">
+                                    <input type="password" class="form-control vq-max-length" placeholder="输入服务器密码" name="password" maxlength="20" value="{{.info.Password}}" autocomplete="new-password">
                                     <span class="form-text">不超过20个字符，没有用户则留空</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="Status" value="1">
+                    <input type="hidden" name="id" value="{{.info.Id}}">
                 </form>
                 <!--end::Portlet-->
             </div>
@@ -94,13 +94,9 @@
     vq.common.submitForm({
         id:'form',
         backUrl:"/server/server/index",
-        successInfo:'继续添加',
-        rules:{
-            'Host':{required:true}
-        },
-        messages:{
-            'Host':{required:"请输入访问地址"}
-        }
+        successInfo:'继续修改',
+        rules:{},
+        messages:{}
     });
     function relationServer(value){
         if(value == "yes"){

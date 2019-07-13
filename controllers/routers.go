@@ -45,10 +45,13 @@ func Register(e *gin.Engine) {
 	postAndGet(e, "/project/project/add", new(Project).Add)
 	postAndGet(e, "/project/project/editVersion", new(Project).EditVersion)
 	postAndGet(e, "/project/project/editServers", new(Project).EditServers)
+	e.GET("/project/project/del", new(Project).Del)
 
 	//服务器相关
 	postAndGet(e, "/server/server/index", new(Server).Index)
 	postAndGet(e, "/server/server/add", new(Server).Add)
+	postAndGet(e, "/server/server/edit", new(Server).Edit)
+	e.GET("/server/server/del", new(Server).Del)
 
 	//爬虫管理
 	postAndGet(e, "/spider/spider/index", new(Spider).Index)
@@ -59,9 +62,13 @@ func Register(e *gin.Engine) {
 	postAndGet(e, "/task/task/cancel", new(Task).Cancel)
 	postAndGet(e, "/task/task/cancelMulti", new(Task).CancelMulti)
 	postAndGet(e, "/task/task/cancelAll", new(Task).CancelAll)
+	postAndGet(e, "/task/task/del", new(Task).Del)
+	postAndGet(e, "/task/task/delMulti", new(Task).DelMulti)
+	postAndGet(e, "/task/task/delAll", new(Task).DelAll)
 	postAndGet(e, "/task/task/schedules", new(Task).Schedules)
 	postAndGet(e, "/task/task/addSchedules", new(Task).AddSchedules)
 	postAndGet(e, "/task/task/updateSchedulesStatus", new(Task).UpdateSchedulesStatus)
+	postAndGet(e, "/task/task/delSchedules", new(Task).DelSchedules)
 }
 
 //注册post和get方法

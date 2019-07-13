@@ -28,6 +28,6 @@ func (p *ProjectServer) InsertProjectServers(projectId int, serverIds []int, ses
 			ServerId:  id,
 		})
 	}
-	_, error := core.DBPool.Master().Insert(projectServers)
+	_, error := core.Db.Insert(projectServers)
 	return error
 }

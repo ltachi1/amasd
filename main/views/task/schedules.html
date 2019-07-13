@@ -140,15 +140,17 @@
                     field: '',
                     overflow: 'visible',
                     autoHide: false,
-                    width: 70,
+                    width: 120,
                     title: '操作',
                     template:function(row, index, datatable){
+                        var str = '';
                         if (row.status == "enabled"){
-                            return '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'disabled\')" class="btn btn-sm btn-label-danger btn-bold">停用</button>';
+                            str = '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'disabled\')" class="btn btn-sm btn-label-danger btn-bold">停用</button>';
                         }else if(row.status == "disabled"){
-                            return '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'enabled\')" class="btn btn-sm btn-label-success btn-bold">启用</button>';
+                            str = '<button type="button" onclick="vq.common.updateSchedulesStatus('+row.id+', \'enabled\')" class="btn btn-sm btn-label-success btn-bold">启用</button>';
                         }
-
+                        str += '&nbsp;&nbsp;<button type="button" data-href="/task/task/delSchedules?id='+row.id+'" data-msg="确定要删除吗?" data-datatable="yes" onclick="vq.common.get(this)" class="btn btn-sm btn-label-danger btn-bold">删除</button>';
+                        return str;
                     }
                 }],
         });

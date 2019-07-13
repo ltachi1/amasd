@@ -14,7 +14,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	"scrapyd-admin/config"
 	"github.com/ltachi1/logrus"
 )
 
@@ -45,11 +44,11 @@ func RecoveryWithWriter() gin.HandlerFunc {
 					stack := stack(3)
 					httprequest, _ := httputil.DumpRequest(c.Request, false)
 					if brokenPipe {
-						WriteLog(config.LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("%s\n%s%s", err, string(httprequest), reset))
+						WriteLog(LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("%s\n%s%s", err, string(httprequest), reset))
 					} else if gin.IsDebugging() {
-						WriteLog(config.LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", timeFormat(time.Now()), string(httprequest), err, stack, reset))
+						WriteLog(LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("[Recovery] %s panic recovered:\n%s\n%s\n%s%s", timeFormat(time.Now()), string(httprequest), err, stack, reset))
 					} else {
-						WriteLog(config.LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("[Recovery] %s panic recovered:\n%s\n%s%s", timeFormat(time.Now()), err, stack, reset))
+						WriteLog(LogTypeSystem, logrus.FatalLevel, nil, fmt.Sprintf("[Recovery] %s panic recovered:\n%s\n%s%s", timeFormat(time.Now()), err, stack, reset))
 					}
 				}
 

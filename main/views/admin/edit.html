@@ -35,15 +35,21 @@
                         </div>
                         <div class="kt-portlet__body">
                             <div class="form-group row">
-                                <label class="col-2 col-form-label text-right">邮箱 <span class="kt-font-danger">*</span></label>
+                                <label class="col-2 col-form-label text-right">用户名 <span class="kt-font-danger">*</span></label>
                                 <div class="col-9">
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入邮箱" disabled name="email" maxlength="80" value="{{.info.Email}}">
+                                    <input type="text" class="form-control vq-max-length" disabled placeholder="请输入用户名" name="username" maxlength="80" value="{{.info.Username}}">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-2 col-form-label text-right">姓名 <span class="kt-font-danger">*</span></label>
+                                <label class="col-2 col-form-label text-right">昵称 <span class="kt-font-danger">*</span></label>
                                 <div class="col-9">
-                                    <input type="text" class="form-control vq-max-length" placeholder="姓名" name="real_name" maxlength="20" value="{{.info.RealName}}">
+                                    <input type="text" class="form-control vq-max-length" placeholder="姓名" name="display_name" maxlength="20" value="{{.info.DisplayName}}">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">邮箱</label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入邮箱" name="email" maxlength="80" value="{{.info.Email}}">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -82,10 +88,10 @@
         backUrl:"/system/admin/index",
         successInfo:'继续修改',
         rules:{
-            'real_name':{required:true}
+            'display_name':{required:true}
         },
         messages:{
-            'real_name':{required:"请输入姓名"}
+            'display_name':{required:"请输入昵称"}
         }
     });
 </script>

@@ -87,7 +87,7 @@
                     title: '操作',
                     template:function(row, index, datatable){
                         return `<span class="dropdown">
-                            <a href="#" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown" aria-expanded="true">
+                            <a href="javascript:;" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown" aria-expanded="true">
                               <i class="fa fa-ellipsis-h"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right">
@@ -95,8 +95,10 @@
                                 <a class="dropdown-item" href="/project/project/editServers?id=` + row.id + `"><i class="la la-leaf"></i> 更新关联服务器</a>
                             </div>
                         </span>
+                        <button data-href="/project/project/del?id=` + row.id + `" data-msg="确定要删除吗?" data-datatable="yes" class="btn btn-sm btn-clean btn-icon btn-icon-md" onclick="vq.common.get(this)" title="删除"><i class="fa fa-trash-alt"></i></button>
                         `;
-                        //<button data-href="/project/project/del?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md" onclick="vq.common.get(this)" title="删除"><i class="la la-trash"></i></button>
+
+
                     }
                 }],
         });
