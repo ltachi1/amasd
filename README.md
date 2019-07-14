@@ -45,3 +45,9 @@
 - 已完成任务列表
 ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/task_finished_list.png)
 
+### Scrapy 课程推荐(本人已看完此教程所有视频)
+- 课程内容：Python基础+脚本爬虫+Scrapy框架+实战训练
+- 涵盖功能：数据提取、数据入库、模拟登录、反爬和反反爬、代理IP管理
+- 课程优势：一对一专业答疑，远程调配环境，爬虫思路指导
+- 课程链接：https://study.163.com/course/courseMain.htm?courseId=1003729016&share=2&shareId=3749780
+- ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/scrapy.jpg)
