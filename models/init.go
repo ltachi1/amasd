@@ -5,32 +5,33 @@ import (
 	"scrapyd-admin/resource/sql"
 	"bytes"
 	"errors"
-	"scrapyd-admin/config"
 	"github.com/ltachi1/logrus"
+	"os"
 )
 
 func init() {
 	error := InitTables()
 	if error != nil {
-		core.WriteLog(config.LogTypeDb, logrus.PanicLevel, nil, error)
+		core.WriteLog(core.LogTypeDb, logrus.PanicLevel, nil, error)
+		os.Exit(1)
 	}
 	InitTask()
 }
 
 func InitTables() error {
 	//判断表是否存在
-	exist, err := core.DBPool.Master().IsTableExist("admin")
+	exist, err := core.Db.IsTableExist("admin")
 	if err != nil {
 		errors.New("数据库表创建失败")
 	}
 	if exist {
 		return nil
 	}
-	sql, err := sql.Asset("scrapyd_admin.sql")
+	sql, err := sql.Asset("sa.sql")
 	if err != nil {
 		return err
 	}
-	_, err = core.DBPool.Master().Import(bytes.NewReader(sql))
+	_, err = core.Db.Import(bytes.NewReader(sql))
 	if err != nil {
 		return err
 

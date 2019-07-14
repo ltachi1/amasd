@@ -10,7 +10,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"scrapyd-admin/core"
-	"scrapyd-admin/config"
 	"github.com/ltachi1/logrus"
 )
 
@@ -43,7 +42,7 @@ func (s *Scrapyd) DaemonStatus() bool {
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false
 }
@@ -85,7 +84,7 @@ func (s *Scrapyd) AddVersion(project *Project, file *multipart.FileHeader) bool 
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false
 }
@@ -102,7 +101,7 @@ func (s *Scrapyd) DelProject(projectName string) bool {
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false
 }
@@ -122,7 +121,7 @@ func (s *Scrapyd) ListSpiders(project *Project) []string {
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return spiders
 }
@@ -138,7 +137,7 @@ func (s *Scrapyd) Schedule(projectName string, version string, spiderName string
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false, ""
 }
@@ -154,7 +153,7 @@ func (s *Scrapyd) Cancel(projectName string, jobId string) bool {
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false
 }
@@ -174,7 +173,7 @@ func (s *Scrapyd) ListJobs(projectName string) (bool, map[string][]interface{}) 
 		}
 	}
 	if error != nil {
-		core.WriteLog(config.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
+		core.WriteLog(core.LogTypeScrapyd, logrus.ErrorLevel, logrus.Fields{"host": s.Host}, error)
 	}
 	return false, map[string][]interface{}{}
 }

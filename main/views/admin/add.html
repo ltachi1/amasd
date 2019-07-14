@@ -34,15 +34,21 @@
                         </div>
                         <div class="kt-portlet__body">
                             <div class="form-group row">
-                                <label class="col-2 col-form-label text-right">邮箱 <span class="kt-font-danger">*</span></label>
+                                <label class="col-2 col-form-label text-right">用户名 <span class="kt-font-danger">*</span></label>
                                 <div class="col-9">
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入邮箱" name="email" maxlength="80" value="">
+                                    <input type="text" class="form-control vq-max-length" placeholder="请输入用户名" name="username" maxlength="80" value="">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-2 col-form-label text-right">姓名 <span class="kt-font-danger">*</span></label>
+                                <label class="col-2 col-form-label text-right">昵称 <span class="kt-font-danger">*</span></label>
                                 <div class="col-9">
-                                    <input type="text" class="form-control vq-max-length" placeholder="请输入姓名" name="real_name" maxlength="20" value="">
+                                    <input type="text" class="form-control vq-max-length" placeholder="请输入昵称" name="display_name" maxlength="20" value="">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">邮箱</label>
+                                <div class="col-9">
+                                    <input type="text" class="form-control vq-max-length" placeholder="请输入邮箱" name="email" maxlength="80" value="">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -57,7 +63,6 @@
                                     <input type="password" class="form-control vq-max-length" name="confirm_password" maxlength="50" value="">
                                 </div>
                             </div>
-
                         </div>
 
                     </div>
@@ -80,10 +85,10 @@
         backUrl:"/system/admin/index",
         successInfo:'继续添加',
         rules:{
-            'email':{required:true, email: true},'real_name':{required:true},'password':{required:true},'confirm_password':{required:true}
+            'username':{required:true},'display_name':{required:true},'password':{required:true},'confirm_password':{required:true}
         },
         messages:{
-            'email':{required:"请输入邮箱", email: "请输入正确的邮箱"},'real_name':{required:"请输入姓名"},'password':{required:"请输入密码"},'confirm_password':{required:"请输入确认密码"}
+            'username':{required:"请输入用户名"},'display_name':{required:"请输入昵称"},'password':{required:"请输入密码"},'confirm_password':{required:"请输入确认密码"}
         }
     });
 </script>

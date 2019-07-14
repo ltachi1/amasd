@@ -13,13 +13,13 @@ var (
 )
 
 type passport struct {
-	Id         int    `json:"id"`
-	Email      string `json:"email"`
-	RealName   string `json:"real_name"`
-	Mobile     string `json:"mobile"`
-	Status     int8   `json:"status"`
-	CreateTime int    `json:"create_time"`
-	RoleList   []int  `json:"role_list"`
+	Id          int    `json:"id"`
+	Email       string `json:"email"`
+	DisplayName string `json:"display_name"`
+	Mobile      string `json:"mobile"`
+	Status      int8   `json:"status"`
+	CreateTime  int    `json:"create_time"`
+	RoleList    []int  `json:"role_list"`
 }
 
 const SuperAdminRoleId = 1 //超级管理员角色id

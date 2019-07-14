@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type AdminAccess struct {
+type Access struct {
 	core.BaseModel `xorm:"-"`
 	Id             int
 	RoleId         int
@@ -15,9 +15,14 @@ type AdminAccess struct {
 	Status         int
 }
 
+var (
+	//AccessStatusEnable  uint8 = 1  //启用
+	//AccessStatusDisable uint8 = -1 //禁用
+)
+
 //设置用户权限列表
-func (a *AdminAccess) SetAccessList(roleIdList []int) bool {
-	//如果当前用户角色中包含超级官员角色则不用读取相关权限
+func (a *Access) SetAccessList(roleIdList []int) bool {
+	//如果当前用户角色中包含超级管理员角色则不用读取相关权限
 	if core.InIntArray(core.SuperAdminRoleId, roleIdList) {
 		return true
 	}
@@ -36,8 +41,8 @@ func (a *AdminAccess) SetAccessList(roleIdList []int) bool {
 }
 
 //获取角色下所有权限
-func (a *AdminAccess) getAccessListByRoleIdList(roleIdList []int) []AdminAccess {
-	accessList := make([]AdminAccess, 0)
-	core.DBPool.Slave().In("role_id", roleIdList).Find(&accessList)
+func (a *Access) getAccessListByRoleIdList(roleIdList []int) []Access {
+	accessList := make([]Access, 0)
+	core.Db.In("role_id", roleIdList).Find(&accessList)
 	return accessList
 }

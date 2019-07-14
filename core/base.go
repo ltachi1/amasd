@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/config"
 )
 
 type BaseController struct{}
@@ -11,11 +10,11 @@ type BaseController struct{}
 func (b *BaseController) Success(c *gin.Context, data ...gin.H) {
 	msg := gin.H{}
 	if len(data) == 0 {
-		msg = config.PromptMsg["success"]
+		msg = PromptMsg["success"]
 	} else {
 		msg = data[0]
 		if _, exists := msg["code"]; !exists {
-			msg["code"] = config.PromptMsg["success"]["code"]
+			msg["code"] = PromptMsg["success"]["code"]
 		}
 	}
 	c.JSON(http.StatusOK, msg)
@@ -24,11 +23,11 @@ func (b *BaseController) Success(c *gin.Context, data ...gin.H) {
 func (b *BaseController) Fail(c *gin.Context, data ...gin.H) {
 	msg := gin.H{}
 	if len(data) == 0 {
-		msg = config.PromptMsg["fail"]
+		msg = PromptMsg["fail"]
 	} else {
 		msg = data[0]
 		if _, exists := msg["code"]; !exists {
-			msg["code"] = config.PromptMsg["fail"]["code"]
+			msg["code"] = PromptMsg["fail"]["code"]
 		}
 	}
 	c.JSON(http.StatusOK, msg)
@@ -39,7 +38,7 @@ type BaseModel struct {
 }
 
 func (b *BaseModel) Insert(obj interface{}) bool {
-	_, error := DBPool.Master().InsertOne(obj)
+	_, error := Db.InsertOne(obj)
 	if error != nil {
 		return false
 	}
@@ -47,7 +46,7 @@ func (b *BaseModel) Insert(obj interface{}) bool {
 }
 
 func (b *BaseModel) Delete(obj interface{}) bool {
-	_, error := DBPool.Master().Delete(obj)
+	_, error := Db.Delete(obj)
 	if error != nil {
 		return false
 	}

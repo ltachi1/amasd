@@ -2,18 +2,18 @@ package models
 
 import (
 	"scrapyd-admin/core"
-	"scrapyd-admin/config"
 	"github.com/ltachi1/logrus"
 )
 
 type Admin struct {
-	core.BaseModel            `xorm:"-"`
-	Id         int            `json:"id" xorm:"pk autoincr"`
-	Email      string         `json:"email" form:"email" binding:"required" xorm:"email"`
-	Password   string         `json:"-" form:"password" binding:"required" xorm:"password"`
-	RealName   string         `json:"real_name" xorm:"real_name"`
-	Status     string         `json:"status" xorm:"status"`
-	CreateTime core.Timestamp `json:"create_time" xorm:"created"`
+	core.BaseModel             `xorm:"-"`
+	Id          int            `json:"id" xorm:"pk autoincr"`
+	Username    string         `json:"username" form:"username" binding:"required" xorm:"username"`
+	Password    string         `json:"-" form:"password" binding:"required" xorm:"password"`
+	Email       string         `json:"email" form:"email" xorm:"email"`
+	DisplayName string         `json:"display_name" xorm:"display_name"`
+	Status      string         `json:"status" xorm:"status"`
+	CreateTime  core.Timestamp `json:"create_time" xorm:"created"`
 }
 
 const (
@@ -23,7 +23,7 @@ const (
 
 func (a *Admin) Login() (bool, string) {
 	a.Password = core.Md5(a.Password)
-	ok, _ := core.DBPool.Slave().Get(a)
+	ok, _ := core.Db.Get(a)
 	if !ok {
 		return false, "login_password_error"
 	} else {
@@ -40,19 +40,19 @@ func (a *Admin) Login() (bool, string) {
 
 	//注册登录信息
 	ok, error := core.GetPassportInstance().Login(core.A{
-		"id":          a.Id,
-		"email":       a.Email,
-		"real_name":   a.RealName,
-		"status":      a.Status,
-		"create_time": a.CreateTime,
-		"role_list":   roleIdList,
+		"id":           a.Id,
+		"email":        a.Email,
+		"display_name": a.DisplayName,
+		"status":       a.Status,
+		"create_time":  a.CreateTime,
+		"role_list":    roleIdList,
 	})
 	if error != nil {
 		return false, "login_user_disable"
 	}
 
 	//设置用户权限
-	adminAccess := new(AdminAccess)
+	adminAccess := new(Access)
 	adminAccess.SetAccessList(roleIdList)
 
 	return true, ""
@@ -61,27 +61,27 @@ func (a *Admin) Login() (bool, string) {
 //分页列表
 func (a *Admin) PageList(page int, pageSize int) ([]Admin, int) {
 	items := make([]Admin, 0)
-	totalCount, _ := core.DBPool.Slave().Table(a).Count()
-	core.DBPool.Slave().Table(a).Limit(pageSize, (page-1)*pageSize).Find(&items)
+	totalCount, _ := core.Db.Table(a).Count()
+	core.Db.Table(a).Limit(pageSize, (page-1)*pageSize).Find(&items)
 	return items, int(totalCount)
 }
 
 func (a *Admin) Update(id int, data core.B) error {
-	_, error := core.DBPool.Master().Table(a).ID(id).Update(data)
+	_, error := core.Db.Table(a).ID(id).Update(data)
 	return error
 }
 
 func (a *Admin) Create() (int, string) {
 	//查询邮箱是否重复
-	count, _ := core.DBPool.Slave().Table(a).Where("email = ?", a.Email).Count()
+	count, _ := core.Db.Table(a).Where("email = ?", a.Email).Count()
 	if count > 0 {
 		return 0, "system_email_repeat_error"
 	}
-	session := core.DBPool.Master().NewSession()
+	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
 	if _, error := session.InsertOne(a); error != nil {
-		core.WriteLog(config.LogTypeAdmin, logrus.ErrorLevel, logrus.Fields{"email": a.Email, "real_name": a.RealName}, error)
+		core.WriteLog(core.LogTypeAdmin, logrus.ErrorLevel, logrus.Fields{"username": a.Username, "display_name": a.DisplayName}, error)
 		session.Rollback()
 		return 0, "add_error"
 	}
@@ -91,7 +91,7 @@ func (a *Admin) Create() (int, string) {
 		RoleId:  core.SuperAdminRoleId,
 	}
 	if _, error := session.InsertOne(&role); error != nil {
-		core.WriteLog(config.LogTypeAdmin, logrus.ErrorLevel, logrus.Fields{"email": a.Email, "real_name": a.RealName}, error)
+		core.WriteLog(core.LogTypeAdmin, logrus.ErrorLevel, logrus.Fields{"username": a.Username, "display_name": a.DisplayName}, error)
 		session.Rollback()
 		return 0, "add_error"
 	}
@@ -100,12 +100,12 @@ func (a *Admin) Create() (int, string) {
 }
 
 func (a *Admin) Get(id int) bool {
-	ok, _ := core.DBPool.Slave().Id(id).Get(a)
+	ok, _ := core.Db.Id(id).Get(a)
 	return ok
 }
 
 func (a *Admin) Delete(id int) error {
-	session := core.DBPool.Master().NewSession()
+	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
 	if _, error := session.Where("id = ?", id).NoAutoCondition().Delete(a); error != nil {

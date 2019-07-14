@@ -55,11 +55,14 @@
             },
             columns: [
                 {
-                    field: 'email',
-                    title: '邮箱',
+                    field: 'username',
+                    title: '用户名',
                 }, {
-                    field: 'real_name',
-                    title: '姓名'
+                    field: 'display_name',
+                    title: '昵称',
+                }, {
+                    field: 'email',
+                    title: '邮箱'
                 }, {
                     field: 'status',
                     title: '状态',
@@ -77,13 +80,11 @@
                     width: 70,
                     title: '操作',
                     template:function(row, index, datatable){
-                        return `
-                        <a href="/system/admin/edit?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md">
-                          <i class="fa fa-edit"></i>
-                        </a>
-                        <button data-href="/system/admin/del?id=` + row.id + `" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-datatable="yes" onclick="vq.common.get(this)" title="删除">
-                          <i class="fa fa-trash"></i>
-                        </button>`;
+                        var str = '<a href="/system/admin/edit?id=' + row.id + '" class="btn btn-sm btn-clean btn-icon btn-icon-md"><i class="fa fa-edit"></i></a>';
+                        if (row.id != 1) {
+                            str +='<button data-href="/system/admin/del?id=' + row.id + '" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-datatable=\yes" onclick=\vq.common.get(this)" title="删除"><i class="fa fa-trash"></i></button>';
+                        }
+                        return str;
                     }
                 }],
         });

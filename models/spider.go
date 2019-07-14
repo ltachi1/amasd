@@ -25,7 +25,7 @@ var (
 func (s *Spider) UpdateProjectSpiders(p *Project, spiderNames []string, session *xorm.Session) bool {
 	spiders := make([]Spider, 0)
 	//查询当前项目下有哪些爬虫
-	if core.DBPool.Slave().Where("project_id = ? and version = ?", p.Id, p.LastVersion).Find(&spiders) != nil {
+	if core.Db.Where("project_id = ? and version = ?", p.Id, p.LastVersion).Find(&spiders) != nil {
 		return false
 	}
 
@@ -80,15 +80,15 @@ func (s *Spider) UpdateProjectSpiders(p *Project, spiderNames []string, session 
 
 //获取项目下爬虫数量
 func (s *Spider) CountByProjectId(projectId int) int {
-	count, _ := core.DBPool.Slave().Table("spider").Where("project_id = ?", projectId).Count()
+	count, _ := core.Db.Table("spider").Where("project_id = ?", projectId).Count()
 	return int(count)
 }
 
 //分页获取爬虫数据
 func (s *Spider) FindPageSpiders(projectId int, version string, page int, pageSize int, order string) ([]core.B, int) {
 	spiders := make([]core.B, 0)
-	countObj := core.DBPool.Slave().Table("spider").Alias("s").Join("INNER", "project as p", "s.project_id = p.id")
-	selectObj := core.DBPool.Slave().Select("s.*,p.name as project_name").Table("spider").Alias("s").Join("INNER", "project as p", "s.project_id = p.id")
+	countObj := core.Db.Table("spider").Alias("s").Join("INNER", "project as p", "s.project_id = p.id")
+	selectObj := core.Db.Select("s.*,p.name as project_name").Table("spider").Alias("s").Join("INNER", "project as p", "s.project_id = p.id")
 	if projectId > 0 {
 		countObj.Where("s.project_id = ? ", projectId)
 		selectObj.Where("s.project_id = ? ", projectId)
@@ -107,12 +107,12 @@ func (s *Spider) FindPageSpiders(projectId int, version string, page int, pageSi
 
 func (s *Spider) FindByProjectIdAndVersion(projectId int, version string) []core.B {
 	spiders := make([]core.B, 0)
-	core.DBPool.Slave().Select("id,name").Table("spider").Where("project_id = ? and version = ? and status = ?", projectId, version, SpiderStatusNormal).Find(&spiders)
+	core.Db.Select("id,name").Table("spider").Where("project_id = ? and version = ? and status = ?", projectId, version, SpiderStatusNormal).Find(&spiders)
 	return spiders
 }
 
 func (s *Spider) FindBySpiderIds(spiderIds []string) []Spider {
 	spiders := make([]Spider, 0)
-	core.DBPool.Slave().Select("id,name").Table("spider").In("id", spiderIds).Find(&spiders)
+	core.Db.Select("id,name").Table("spider").In("id", spiderIds).Find(&spiders)
 	return spiders
 }

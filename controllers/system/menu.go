@@ -3,7 +3,6 @@ package system
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/config"
 	"scrapyd-admin/core"
 	"scrapyd-admin/models"
 	"strconv"
@@ -16,7 +15,7 @@ type Menu struct {
 func (a *Menu) Index(c *gin.Context) {
 	if core.IsAjax(c) {
 		c.JSON(http.StatusOK, gin.H{
-			"data": new(models.SystemMenu).TreeMenus(),
+			"data": new(models.Menu).TreeMenus(),
 		})
 	} else {
 		c.HTML(http.StatusOK, "menu/index", gin.H{})
@@ -26,21 +25,21 @@ func (a *Menu) Index(c *gin.Context) {
 //添加菜单
 func (a *Menu) Add(c *gin.Context) {
 	if core.IsAjax(c) {
-		var menu models.SystemMenu
+		var menu models.Menu
 		if err := c.ShouldBind(&menu); err == nil {
 			if menu.Insert() {
 				a.Success(c)
 			} else {
-				a.Fail(c, config.PromptMsg["add_error"])
+				a.Fail(c, core.PromptMsg["add_error"])
 			}
 		} else {
-			a.Fail(c, config.PromptMsg["add_error"])
+			a.Fail(c, core.PromptMsg["add_error"])
 		}
 	} else {
 		parentId, _ := strconv.Atoi(c.DefaultQuery("parent_id", "0"))
 		c.HTML(http.StatusOK, "menu/add", gin.H{
 			"parentId":  parentId,
-			"treeMenus": new(models.SystemMenu).TreeMenus(),
+			"treeMenus": new(models.Menu).TreeMenus(),
 		})
 	}
 }
@@ -58,31 +57,31 @@ func (a *Menu) Edit(c *gin.Context) {
 		icon := c.DefaultPostForm("icon", "")
 		status, _ := strconv.Atoi(c.DefaultPostForm("status", ""))
 		if id == 0 {
-			a.Fail(c, config.PromptMsg["parameter_error"])
+			a.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if name == "" {
-			a.Fail(c, config.PromptMsg["system_menu_name_error"])
+			a.Fail(c, core.PromptMsg["system_menu_name_error"])
 			return
 		}
 		if app == "" {
-			a.Fail(c, config.PromptMsg["system_menu_app_error"])
+			a.Fail(c, core.PromptMsg["system_menu_app_error"])
 			return
 		}
 		if controller == "" {
-			a.Fail(c, config.PromptMsg["system_menu_controller_error"])
+			a.Fail(c, core.PromptMsg["system_menu_controller_error"])
 			return
 		}
 		if action == "" {
-			a.Fail(c, config.PromptMsg["system_menu_action_error"])
+			a.Fail(c, core.PromptMsg["system_menu_action_error"])
 			return
 		}
 		if !(status == models.MenuStatusEnable || status == models.MenuStatusDisable) {
-			a.Fail(c, config.PromptMsg["system_menu_status_error"])
+			a.Fail(c, core.PromptMsg["system_menu_status_error"])
 			return
 		}
 
-		err := new(models.SystemMenu).Update(id, core.A{
+		err := new(models.Menu).Update(id, core.A{
 			"parent_id":  parentId,
 			"name":       name,
 			"app":        app,
@@ -95,22 +94,22 @@ func (a *Menu) Edit(c *gin.Context) {
 		if err == nil {
 			a.Success(c)
 		} else {
-			a.Fail(c, config.PromptMsg["update_error"])
+			a.Fail(c, core.PromptMsg["update_error"])
 		}
 	} else {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 		if id == 0 {
-			core.Error(c, config.PromptMsg["parameter_error"])
+			core.Error(c, core.PromptMsg["parameter_error"])
 			return
 		}
-		sm := new(models.SystemMenu)
+		sm := new(models.Menu)
 		if ok := sm.Get(id); ok && sm.Id == id {
 			c.HTML(http.StatusOK, "menu/edit", gin.H{
 				"info":      sm,
 				"treeMenus": sm.TreeMenus(),
 			})
 		} else {
-			core.Error(c, config.PromptMsg["system_menu_info_error"])
+			core.Error(c, core.PromptMsg["system_menu_info_error"])
 		}
 
 	}
@@ -122,13 +121,13 @@ func (a *Menu) EditStatus(c *gin.Context) {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 		status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
 		if !(status == models.MenuStatusEnable || status == models.MenuStatusDisable) {
-			a.Fail(c, config.PromptMsg["parameter_error"])
+			a.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
-		if error := new(models.SystemMenu).Update(id, core.A{"status": status}); error == nil {
+		if error := new(models.Menu).Update(id, core.A{"status": status}); error == nil {
 			a.Success(c)
 		} else {
-			a.Fail(c, config.PromptMsg["update_error"])
+			a.Fail(c, core.PromptMsg["update_error"])
 		}
 	}
 }
@@ -137,15 +136,15 @@ func (a *Menu) EditStatus(c *gin.Context) {
 func (a *Menu) Del(c *gin.Context) {
 	id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 	if id == 0 {
-		a.Fail(c, config.PromptMsg["parameter_error"])
+		a.Fail(c, core.PromptMsg["parameter_error"])
 		return
 	}
-	sm := new(models.SystemMenu)
+	sm := new(models.Menu)
 	sm.Id = id
 	if ok := sm.DeleteById(); ok {
 		a.Success(c)
 	} else {
-		a.Fail(c, config.PromptMsg["del_error"])
+		a.Fail(c, core.PromptMsg["del_error"])
 	}
 
 }

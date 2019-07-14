@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/config"
 	"time"
 )
 
@@ -47,19 +46,19 @@ func (a *ApiAuth) Check(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		//解析不成功,或者其他原因
-		c.JSON(http.StatusForbidden, config.PromptMsg["token_valid"])
+		c.JSON(http.StatusForbidden, PromptMsg["token_valid"])
 		c.Abort()
 		return
 	}
 	td := &tokenData{}
 	if err := json.Unmarshal([]byte(AesDecrypt(token)), td); err != nil {
-		c.JSON(http.StatusForbidden, config.PromptMsg["token_valid"])
+		c.JSON(http.StatusForbidden, PromptMsg["token_valid"])
 		c.Abort()
 		return
 	}
 	if td.LongestExp < time.Now().Unix() {
 		//token已过最长使用期限，需要重新登录
-		c.JSON(200, config.PromptMsg["no_login"])
+		c.JSON(200, PromptMsg["no_login"])
 		c.Abort()
 		return
 	} else {
@@ -75,19 +74,19 @@ func AuthValidateToken(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		//解析不成功,或者其他原因
-		c.JSON(http.StatusForbidden, config.PromptMsg["token_valid"])
+		c.JSON(http.StatusForbidden, PromptMsg["token_valid"])
 		c.Abort()
 		return
 	}
 	td := &tokenData{}
 	if err := json.Unmarshal([]byte(AesDecrypt(token)), td); err != nil {
-		c.JSON(http.StatusForbidden, config.PromptMsg["token_valid"])
+		c.JSON(http.StatusForbidden, PromptMsg["token_valid"])
 		c.Abort()
 		return
 	}
 	if td.LongestExp < time.Now().Unix() {
 		//token已过最长使用期限，需要重新登录
-		c.JSON(200, config.PromptMsg["no_login"])
+		c.JSON(200, PromptMsg["no_login"])
 		c.Abort()
 		return
 	} else {
@@ -108,4 +107,12 @@ func GenerateToken(id int64) string {
 		LongestExp: timeNow.Add(time.Hour * time.Duration(2)).Unix(),    // 两个小时之内可以重新更新令牌，超过则需要重新登录
 	})
 	return AesEncrypt(string(info))
+}
+
+
+//检查登录状态
+func CheckLoginStatus(a Auth) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		a.Check(c)
+	}
 }

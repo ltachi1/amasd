@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 	"github.com/ltachi1/logrus"
-	"scrapyd-admin/config"
+	"sync"
 )
 
 type Project struct {
@@ -20,19 +20,19 @@ type Project struct {
 
 func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.FileHeader) (bool, string, []string) {
 	errorServerList := make([]string, 0)
-	if count, _ := core.DBPool.Where("name = ?", p.Name).Table(p).Count(); count > 0 {
+	if count, _ := core.Db.Where("name = ?", p.Name).Table(p).Count(); count > 0 {
 		return false, "project_name_repeat", errorServerList
 	}
 	//不输入版本号，则默认使用当前系统时间戳作为版本号
 	if p.LastVersion == "" {
 		p.LastVersion = strconv.FormatInt(time.Now().Unix(), 10)
 	}
-	session := core.DBPool.Master().NewSession()
+	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
 	if _, error := session.Insert(p); error != nil {
 		session.Rollback()
-		core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
 		return false, "add_error", errorServerList
 	}
 	//创建版本历史记录
@@ -42,7 +42,7 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 	}
 	if _, error := session.Insert(projectHistory); error != nil {
 		session.Rollback()
-		core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
 		return false, "add_error", errorServerList
 	}
 
@@ -53,7 +53,7 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 		servers := server.FindByIds(serverIds)
 		if len(servers) != len(serverIds) {
 			session.Rollback()
-			core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, "server info error")
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, "server info error")
 			return false, "server_info_error", errorServerList
 		}
 		ch := make(chan bool)
@@ -65,13 +65,13 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 				}
 				if _, error := session.InsertOne(&projectServer); error != nil {
 					errorServerList = append(errorServerList, serverInfo.Host)
-					core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+					core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
 					ch <- false
 				} else {
 					//上传项目文件到服务器
 					scrapyd := Scrapyd{
-						Host: serverInfo.Host,
-						Auth: serverInfo.Auth,
+						Host:     serverInfo.Host,
+						Auth:     serverInfo.Auth,
 						Username: serverInfo.Username,
 						Password: serverInfo.Password,
 					}
@@ -87,7 +87,7 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 			}(serverInfo)
 		}
 		isFailure := true
-		for i := 0; i < len(servers); i++{
+		for i := 0; i < len(servers); i++ {
 			if ! <-ch {
 				isFailure = false
 			}
@@ -124,7 +124,7 @@ func (p *Project) UpdateVersion(useHistoryVersion string, version string, file *
 	if task.HaveRunning(p.Id) || new(SchedulesTask).HaveEnabled(p.Id) {
 		return false, "task_running_error"
 	}
-	session := core.DBPool.Master().NewSession()
+	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
 	if useHistoryVersion == "no" {
@@ -205,9 +205,15 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 		increaseServerIds []int
 	)
 	relatedServers := server.FindByProjectId(p.Id)
+	task := new(Task)
+	schedulesTask := new(SchedulesTask)
 	//减少的服务器
 	for _, rs := range relatedServers {
 		if !core.InIntArray(rs.Id, serverIds) {
+			//如果项目下有正在运行的定时任务或者普通任务则不允许删除
+			if task.HaveRunning(p.Id) || schedulesTask.HaveEnabled(p.Id) {
+				return false, "server_cutback_task_running_error"
+			}
 			cutBackServers = append(cutBackServers, rs)
 			cutBackServerIds = append(cutBackServerIds, rs.Id)
 		}
@@ -223,7 +229,7 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 	if len(increaseServerIds) > 0 && file == nil {
 		return false, "file_upload_error"
 	}
-	session := core.DBPool.Master().NewSession()
+	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
 	//处理减少的服务器
@@ -232,8 +238,8 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 		for _, cbs := range cutBackServers {
 			go func(cbs Server) {
 				s := Scrapyd{
-					Host: cbs.Host,
-					Auth: cbs.Auth,
+					Host:     cbs.Host,
+					Auth:     cbs.Auth,
 					Username: cbs.Username,
 					Password: cbs.Password,
 				}
@@ -241,7 +247,7 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 			}(cbs)
 		}
 		isFailure := true
-		for i := 0; i < len(cutBackServers); i++{
+		for i := 0; i < len(cutBackServers); i++ {
 			if ! <-ch {
 				isFailure = false
 			}
@@ -253,8 +259,19 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 		}
 
 		if error := projectServer.DelProjectServers(p.Id, cutBackServerIds, session); error != nil {
-			core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
 			session.Rollback()
+			return false, "update_error"
+		}
+
+		//删除当前项目所选服务器任务历史
+
+		//删除所有定时任务
+		if _, error := session.Where("project_id = ?", p.Id).In("server_id", cutBackServerIds).NoAutoCondition().Delete(schedulesTask); error != nil {
+			return false, "update_error"
+		}
+		//删除所有任务
+		if _, error := session.Where("project_id = ?", p.Id).In("server_id", cutBackServerIds).NoAutoCondition().Delete(task); error != nil {
 			return false, "update_error"
 		}
 	}
@@ -270,8 +287,8 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 		for _, s := range increaseServers {
 			go func(s Server) {
 				scrapyd := Scrapyd{
-					Host: s.Host,
-					Auth: s.Auth,
+					Host:     s.Host,
+					Auth:     s.Auth,
 					Username: s.Username,
 					Password: s.Password,
 				}
@@ -291,7 +308,7 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 		}
 
 		if error := projectServer.InsertProjectServers(p.Id, increaseServerIds, session); error != nil {
-			core.WriteLog(config.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
 			session.Rollback()
 			return false, "update_error"
 		}
@@ -314,14 +331,14 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 
 //根据id获取项目信息
 func (p *Project) Get(id int) bool {
-	ok, _ := core.DBPool.Slave().Id(id).NoAutoCondition().Get(p)
+	ok, _ := core.Db.Id(id).NoAutoCondition().Get(p)
 	return ok && p.Id > 0
 }
 
 //获取所有项目
 func (p *Project) Find() []Project {
 	projects := make([]Project, 0)
-	core.DBPool.Slave().OrderBy("id asc").Find(&projects)
+	core.Db.OrderBy("id asc").Find(&projects)
 	return projects
 }
 
@@ -330,11 +347,77 @@ func (p *Project) GetPageProjects(serverId int, page int, pageSize int) ([]Proje
 	projects := make([]Project, 0)
 	var totalCount int64 = 0
 	if serverId == 0 {
-		totalCount, _ = core.DBPool.Slave().Table("project").Count()
-		core.DBPool.Slave().Limit(pageSize, (page-1)*pageSize).Find(&projects)
+		totalCount, _ = core.Db.Table("project").Count()
+		core.Db.Limit(pageSize, (page-1)*pageSize).Find(&projects)
 	} else {
-		totalCount, _ = core.DBPool.Slave().Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Count()
-		core.DBPool.Slave().Select("p.*").Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Limit(pageSize, (page-1)*pageSize).Find(&projects)
+		totalCount, _ = core.Db.Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Count()
+		core.Db.Select("p.*").Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Limit(pageSize, (page-1)*pageSize).Find(&projects)
 	}
 	return projects, int(totalCount)
+}
+
+func (p *Project) Del(id int) (bool, string) {
+	if !p.Get(id) {
+		return false, "project_del_error"
+	}
+	//如果项目下有正在运行的定时任务或者普通任务则不允许删除
+	if new(Task).HaveRunning(p.Id) || new(SchedulesTask).HaveEnabled(p.Id) {
+		return false, "project_task_running_error"
+	}
+	var wg sync.WaitGroup
+	//查询所有关联服务器
+	server := new(Server)
+	successServerIds, failureServerIds := make([]int, 0), make([]int, 0)
+	for _, s := range server.FindByProjectId(id) {
+		wg.Add(1)
+		go func(s Server) {
+			scrapyd := Scrapyd{
+				Host:     s.Host,
+				Auth:     s.Auth,
+				Username: s.Username,
+				Password: s.Password,
+			}
+			if scrapyd.DelProject(p.Name) {
+				successServerIds = append(successServerIds, s.Id)
+			} else {
+				failureServerIds = append(failureServerIds, s.Id)
+			}
+			wg.Done()
+		}(s)
+	}
+	wg.Wait()
+	if len(successServerIds) > 0 {
+		session := core.Db.NewSession()
+		defer session.Close()
+		session.Begin()
+		//删除关联服务器
+		if _, err := session.Where("project_id = ?", id).In("server_id", successServerIds).NoAutoCondition().Delete(&ProjectServer{}); err != nil {
+			return false, "project_del_error"
+		}
+		//删除所有定时任务
+		if _, err := session.Where("project_id = ?", id).In("server_id", successServerIds).NoAutoCondition().Delete(&SchedulesTask{}); err != nil {
+			return false, "project_del_error"
+		}
+		//删除所有任务
+		if _, err := session.Where("project_id = ?", id).In("server_id", successServerIds).NoAutoCondition().Delete(&Task{}); err != nil {
+			return false, "project_del_error"
+		}
+		if len(failureServerIds) == 0 {
+			//删除项目历史
+			if _, err := session.Where("project_id = ?", id).NoAutoCondition().Delete(&ProjectHistory{}); err != nil {
+				return false, "project_del_error"
+			}
+			//删除项目
+			if _, err := session.Where("id = ?", id).NoAutoCondition().Delete(&Project{}); err != nil {
+				return false, "project_del_error"
+			}
+		}
+		session.Commit()
+	} else if len(successServerIds) == 0 && len(failureServerIds) == 0 {
+		if _, err := core.Db.Where("id = ?", id).NoAutoCondition().Delete(&Project{}); err != nil {
+			return false, "del_error"
+		}
+	}
+
+	return true, "project_del_error"
 }

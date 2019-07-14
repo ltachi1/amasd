@@ -92,12 +92,14 @@
                     field: '',
                     overflow: 'visible',
                     autoHide: false,
-                    width: 50,
+                    width: 70,
                     title: '操作',
                     template: function(row, index, datatable) {
-                        return `<a href="/system/menu/edit?id=`+row.id+`" class="btn btn-sm btn-clean btn-icon btn-icon-md" title="编辑">
+                        return `<a href="/server/server/edit?id=`+row.id+`" class="btn btn-sm btn-clean btn-icon btn-icon-md" title="编辑">
                           <i class="fa fa-edit"></i>
-                        </a>`;
+                        </a>
+                        <button data-href="/server/server/del?id=` + row.id + `" data-msg="确定要删除吗?" data-datatable="yes" class="btn btn-sm btn-clean btn-icon btn-icon-md" onclick="vq.common.get(this)" title="删除"><i class="fa fa-trash-alt"></i></button>
+                        `;
                     },
                 }],
         });

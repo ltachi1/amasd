@@ -8,7 +8,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ltachi1/logrus"
 	"os"
-	"scrapyd-admin/config"
 	"strings"
 	"sync"
 	"time"
@@ -17,11 +16,21 @@ import (
 var Log = logrus.New()
 
 //初始化日志
-func InitLog() {
+func InitLog(logPath string) {
+	if logPath == "" {
+		logPath = RootPath + "/logs"
+	}
+	logPath = SupplementDir(logPath)
+	err := os.MkdirAll(logPath, os.ModePerm)
+	if err != nil {
+		fmt.Println("日志路径输入不正确或者没有写入权限")
+		os.Exit(1)
+	}
+
 	//增加日志中间件，将日志按天按类型输出到不同的文件，error以上信息单独输出目录
 	writer, err := rotatelogs.New(
-		config.Conf.BusinessLogPath+"/{dir}%Y%m%d.log",
-		//rotatelogs.WithLinkName(config.Conf.BusinessLogPath),     // 生成软链，指向最新日志文件
+		logPath + "{dir}%Y%m%d.log",
+		//rotatelogs.WithLinkName(./logs),     // 生成软链，指向最新日志文件
 		rotatelogs.WithRotationTime(time.Hour*time.Duration(24)), // 日志切割时间间隔
 	)
 	if err != nil {
@@ -29,12 +38,12 @@ func InitLog() {
 	}
 	setNull()
 	//根据不同的环境设置不同的日志等级
-	switch config.Conf.Env {
-	case config.EnvDev:
+	switch Env {
+	case EnvDev:
 		Log.SetLevel(logrus.TraceLevel)
-	case config.EnvTesting:
+	case EnvTesting:
 		Log.SetLevel(logrus.DebugLevel)
-	case config.EnvProduction:
+	case EnvProduction:
 		Log.SetLevel(logrus.InfoLevel)
 	default:
 		Log.SetLevel(logrus.ErrorLevel)
@@ -175,7 +184,7 @@ func WriteLog(logType string, logLevel logrus.Level, fields logrus.Fields, log .
 			logPath = logType
 		} else {
 			//错误日志单独输出到一个文件夹下,类型用你logType区分
-			logPath = config.ErrorDir
+			logPath = ErrorDir
 			if fields != nil {
 				fields["error_type"] = logType
 			} else {

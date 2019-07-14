@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/config"
 	"scrapyd-admin/core"
 	"scrapyd-admin/models"
 	"strconv"
@@ -48,23 +47,23 @@ func (t *Task) Add(c *gin.Context) {
 		spiders := c.PostFormArray("spider")
 		servers := c.PostFormArray("server")
 		if project == "" {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		projectInfo := strings.Split(project, "|")
 		if len(projectInfo) != 3 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		projectId, _ := strconv.Atoi(projectInfo[0])
 		if projectId <= 0 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if ok, errorTaskList := new(models.Task).Inert(projectId, projectInfo[1], projectInfo[2], spiders, servers); ok {
 			t.Success(c)
 		} else {
-			promptMsg := config.PromptMsg["task_add_error"]
+			promptMsg := core.PromptMsg["task_add_error"]
 			promptMsg["errorServerList"] = strings.Join(errorTaskList, ", ")
 			t.Fail(c, promptMsg)
 		}
@@ -80,13 +79,13 @@ func (t *Task) Cancel(c *gin.Context) {
 	if core.IsAjax(c) {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 		if id == 0 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if new(models.Task).Cancel(id) {
 			t.Success(c)
 		} else {
-			t.Fail(c, config.PromptMsg["update_error"])
+			t.Fail(c, core.PromptMsg["update_error"])
 		}
 	}
 }
@@ -95,18 +94,18 @@ func (t *Task) CancelMulti(c *gin.Context) {
 	if core.IsAjax(c) {
 		ids := c.DefaultPostForm("ids", "")
 		if ids == "" {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		idList := make([]string, 0)
 		if err := json.Unmarshal([]byte(ids), &idList); err != nil {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if ok, failureList := new(models.Task).CancelMulti(idList); ok {
 			t.Success(c)
 		} else {
-			promptMsg := config.PromptMsg["task_update_error"]
+			promptMsg := core.PromptMsg["task_update_error"]
 			promptMsg["errorServerList"] = strings.Join(failureList, ", ")
 			t.Fail(c, promptMsg)
 		}
@@ -122,9 +121,58 @@ func (t *Task) CancelAll(c *gin.Context) {
 		if ok, failureList := new(models.Task).CancelAll(projectId, version, serverId, status); ok {
 			t.Success(c)
 		} else {
-			promptMsg := config.PromptMsg["task_update_error"]
+			promptMsg := core.PromptMsg["task_update_error"]
 			promptMsg["errorServerList"] = strings.Join(failureList, ", ")
 			t.Fail(c, promptMsg)
+		}
+	}
+}
+
+func (t *Task) Del(c *gin.Context) {
+	if core.IsAjax(c) {
+		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
+		if id == 0 {
+			t.Fail(c, core.PromptMsg["parameter_error"])
+			return
+		}
+		if new(models.Task).Del(id) {
+			t.Success(c)
+		} else {
+			t.Fail(c, core.PromptMsg["del_error"])
+		}
+	}
+}
+
+func (t *Task) DelMulti(c *gin.Context) {
+	if core.IsAjax(c) {
+		ids := c.DefaultPostForm("ids", "")
+		if ids == "" {
+			t.Fail(c, core.PromptMsg["parameter_error"])
+			return
+		}
+		idList := make([]string, 0)
+		if err := json.Unmarshal([]byte(ids), &idList); err != nil {
+			t.Fail(c, core.PromptMsg["parameter_error"])
+			return
+		}
+		if new(models.Task).DelMulti(idList) {
+			t.Success(c)
+		} else {
+			t.Fail(c, core.PromptMsg["del_error"])
+		}
+	}
+}
+
+func (t *Task) DelAll(c *gin.Context) {
+	if core.IsAjax(c) {
+		projectId, _ := strconv.Atoi(c.DefaultPostForm("project_id", "0"))
+		version := c.DefaultPostForm("version", "")
+		serverId, _ := strconv.Atoi(c.DefaultPostForm("server_id", "0"))
+		status := c.DefaultPostForm("status", "")
+		if new(models.Task).DelAll(projectId, version, serverId, status) {
+			t.Success(c)
+		} else {
+			t.Fail(c, core.PromptMsg["del_error"])
 		}
 	}
 }
@@ -165,27 +213,27 @@ func (t *Task) AddSchedules(c *gin.Context) {
 		servers := c.PostFormArray("server")
 		cron := c.DefaultPostForm("cron", "")
 		if project == "" {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if cron == "" {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		projectInfo := strings.Split(project, "|")
 		if len(projectInfo) != 3 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		projectId, _ := strconv.Atoi(projectInfo[0])
 		if projectId <= 0 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if new(models.SchedulesTask).Inert(projectId, projectInfo[1], projectInfo[2], cron, spiders, servers) {
 			t.Success(c)
 		} else {
-			t.Fail(c, config.PromptMsg["add_error"])
+			t.Fail(c, core.PromptMsg["add_error"])
 		}
 	} else {
 		project := new(models.Project)
@@ -200,11 +248,11 @@ func (t *Task) UpdateSchedulesStatus(c *gin.Context) {
 		id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
 		status := c.DefaultPostForm("status", "")
 		if id == 0 {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 		if status != models.SchedulesTaskStatusEnabled && status != models.SchedulesTaskStatusDisabled {
-			t.Fail(c, config.PromptMsg["parameter_error"])
+			t.Fail(c, core.PromptMsg["parameter_error"])
 			return
 		}
 
@@ -215,7 +263,18 @@ func (t *Task) UpdateSchedulesStatus(c *gin.Context) {
 		if schedulesTask.UpdateStatus() {
 			t.Success(c)
 		} else {
-			t.Fail(c, config.PromptMsg["update_error"])
+			t.Fail(c, core.PromptMsg["update_error"])
+		}
+	}
+}
+
+func (t *Task) DelSchedules(c *gin.Context) {
+	if core.IsAjax(c) {
+		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
+		if new(models.SchedulesTask).Del(id) {
+			t.Success(c)
+		} else {
+			t.Fail(c, core.PromptMsg["del_error"])
 		}
 	}
 }

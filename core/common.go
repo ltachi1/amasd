@@ -12,6 +12,7 @@ import (
 	"time"
 	"unsafe"
 	"crypto/md5"
+	"os"
 )
 
 //验证给定的参数是否是url格式
@@ -167,4 +168,12 @@ func Md5(str string) string {
 	has := md5.Sum(data)
 	md5str := fmt.Sprintf("%x", has)
 	return md5str
+}
+
+//补充路径
+func SupplementDir(path string) string {
+	if !strings.HasSuffix(path, string(os.PathSeparator)) {
+		path = path + string(os.PathSeparator)
+	}
+	return path
 }
