@@ -12,6 +12,8 @@
 - -db 数据库存放路径，默认当前运行的目录
 
 ### 部分功能截图
+- 默认用户名、密码均为admin
+
 - 登录
 ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/login.jpg)
 
