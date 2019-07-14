@@ -73,11 +73,6 @@ func Bytes2Str(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-//格式化时间字符串
-func Time2String(timestamp Timestamp, format string) string {
-	return time.Unix(int64(timestamp), 0).Format(format)
-}
-
 //格式化字符串类型的时间戳
 func FormatDateByString(timestamp string, format string) string {
 	r, _ := strconv.ParseInt(timestamp, 10, 64)

@@ -7,7 +7,6 @@ import (
 	"scrapyd-admin/resource"
 	"scrapyd-admin/controllers"
 	"fmt"
-	"html/template"
 )
 
 func main() {
@@ -22,11 +21,6 @@ func main() {
 		Path:   "/",
 	})
 	e.Use(sessions.Sessions(core.SessionCookieName, store))
-	e.SetFuncMap(
-		template.FuncMap{
-			"formatTime": core.Time2String,
-		},
-	)
 	//加载模板文件
 	resource.LoadTemplate(e)
 

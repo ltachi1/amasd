@@ -27,8 +27,8 @@
                                 {{range .historyList}}
                                     <div class="kt-list-timeline__item">
                                         <span class="kt-list-timeline__badge"></span>
-                                        <span class="kt-list-timeline__text">{{.Version}}<br>{{formatTime .CreateTime "2006-01-02 15:04"}}</span>
-                                        <span class="kt-list-timeline__time"><button type="button" class="btn btn-outline-primary btn-sm history-version" data-version="{{.Version}}">使用</button></span>
+                                        <span class="kt-list-timeline__text">{{.version}}<br>{{.create_time}}</span>
+                                        <span class="kt-list-timeline__time"><button type="button" class="btn btn-outline-primary btn-sm history-version" data-version="{{.version}}">使用</button></span>
                                     </div>
                                 {{end}}
                             </div>
