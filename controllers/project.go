@@ -157,7 +157,7 @@ func (p *Project) EditServers(c *gin.Context) {
 		for i := 0; i < len(projectServers); i++ {
 			servers[projectServers[i].Id]["selected"] = "1"
 		}
-		c.HTML(http.StatusOK, "project/editServers", gin.H{
+		c.HTML(http.StatusOK, "project/edit_servers", gin.H{
 			"info":    project,
 			"servers": servers,
 		})
