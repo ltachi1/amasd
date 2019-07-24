@@ -7,7 +7,7 @@
 
 ### 运行参数
 - -p 监听端口，默认 8000
-- -d 运行环境，可使用dev、testing、production中任意一种
+- -e 运行环境，可使用dev、testing、production中任意一种
 - -log 日志存放路径，默认当前运行的目录
 - -db 数据库存放路径，默认当前运行的目录
 
