@@ -5,8 +5,8 @@ import (
 	"scrapyd-admin/core"
 	"scrapyd-admin/resource/views"
 	"strings"
-	"html/template"
 	"github.com/ltachi1/logrus"
+	"html/template"
 )
 
 //加载模板文件
