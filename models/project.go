@@ -7,6 +7,7 @@ import (
 	"time"
 	"github.com/ltachi1/logrus"
 	"sync"
+	"fmt"
 )
 
 type Project struct {
@@ -32,7 +33,7 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 	session.Begin()
 	if _, error := session.Insert(p); error != nil {
 		session.Rollback()
-		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("项目创建失败:%s", error))
 		return false, "add_error", errorServerList
 	}
 	//创建版本历史记录
@@ -42,18 +43,17 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 	}
 	if _, error := session.Insert(projectHistory); error != nil {
 		session.Rollback()
-		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("项目历史版本创建失败:%s", error))
 		return false, "add_error", errorServerList
 	}
 
 	//关联现有服务器
 	if relation == "yes" {
-		successHost := ""
 		server := new(Server)
 		servers := server.FindByIds(serverIds)
 		if len(servers) != len(serverIds) {
 			session.Rollback()
-			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, "server info error")
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, "项目服务获取数量不匹配")
 			return false, "server_info_error", errorServerList
 		}
 		ch := make(chan bool)
@@ -65,7 +65,7 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 				}
 				if _, error := session.InsertOne(&projectServer); error != nil {
 					errorServerList = append(errorServerList, serverInfo.Host)
-					core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name}, error)
+					core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("项目与服务器关联失败:%s", error))
 					ch <- false
 				} else {
 					//上传项目文件到服务器
@@ -79,7 +79,6 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 						errorServerList = append(errorServerList, serverInfo.Host)
 						ch <- false
 					} else {
-						successHost = serverInfo.Host
 						ch <- true
 					}
 				}
@@ -99,9 +98,10 @@ func (p *Project) InsertOne(relation string, serverIds []int, file *multipart.Fi
 		}
 
 		//添加项目所包含爬虫列表
-		scrapyd := &Scrapyd{Host: successHost}
-		spiders := scrapyd.ListSpiders(p)
-		if len(spiders) == 0 {
+		scrapyd := &Scrapyd{Host: servers[0].Host, Auth: servers[0].Auth, Username: servers[0].Username, Password: servers[0].Password}
+		err, spiders := scrapyd.ListSpiders(p)
+		if err != nil {
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("爬虫列表获取失败:%s", err))
 			session.Rollback()
 			return false, "project_spider_number_error", errorServerList
 		}
@@ -168,27 +168,30 @@ func (p *Project) UpdateVersion(useHistoryVersion string, version string, file *
 		Status: ServerStatusNormal,
 	}
 	servers := server.FindByProjectId(p.Id)
+	if len(servers) == 0 {
+		session.Rollback()
+		return false, "project_no_server"
+	}
 	for _, s := range servers {
 		//上传项目文件到服务器
-		scrapyd := &Scrapyd{Host: s.Host}
+		scrapyd := &Scrapyd{Host: s.Host, Auth: s.Auth, Username: s.Username, Password: s.Password}
 		if !scrapyd.AddVersion(p, file) {
 			session.Rollback()
 			return false, "project_update_version_error"
 		}
 	}
 	//当所有服务器都更新成功再更新项目所包含爬虫
-	if len(servers) > 0 {
-		scrapyd := &Scrapyd{Host: servers[0].Host}
-		spiders := scrapyd.ListSpiders(p)
-		if len(spiders) == 0 {
-			session.Rollback()
-			return false, "project_spider_number_error"
-		}
-		spider := new(Spider)
-		if !spider.UpdateProjectSpiders(p, spiders, session) {
-			session.Rollback()
-			return false, "project_spider_update_error"
-		}
+	scrapyd := &Scrapyd{Host: servers[0].Host, Auth: servers[0].Auth, Username: servers[0].Username, Password: servers[0].Password}
+	err, spiders := scrapyd.ListSpiders(p)
+	if err != nil {
+		session.Rollback()
+		core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("爬虫列表获取失败:%s", err))
+		return false, "project_spider_number_error"
+	}
+	spider := new(Spider)
+	if !spider.UpdateProjectSpiders(p, spiders, session) {
+		session.Rollback()
+		return false, "project_spider_update_error"
 	}
 	session.Commit()
 	return true, ""
@@ -264,8 +267,6 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 			return false, "update_error"
 		}
 
-		//删除当前项目所选服务器任务历史
-
 		//删除所有定时任务
 		if _, error := session.Where("project_id = ?", p.Id).In("server_id", cutBackServerIds).NoAutoCondition().Delete(schedulesTask); error != nil {
 			return false, "update_error"
@@ -313,10 +314,11 @@ func (p *Project) UpdateServers(serverIds []int, file *multipart.FileHeader) (bo
 			return false, "update_error"
 		}
 		//如果没有关联过服务器，则需要更新项目所包含爬虫列表
-		scrapyd := &Scrapyd{Host: increaseServers[0].Host}
-		spiders := scrapyd.ListSpiders(p)
-		if len(spiders) == 0 {
+		scrapyd := &Scrapyd{Host: increaseServers[0].Host, Auth: increaseServers[0].Auth, Username: increaseServers[0].Username, Password: increaseServers[0].Password}
+		err, spiders := scrapyd.ListSpiders(p)
+		if err != nil {
 			session.Rollback()
+			core.WriteLog(core.LogTypeProject, logrus.ErrorLevel, logrus.Fields{"project_name": p.Name, "version": p.LastVersion}, fmt.Sprintf("爬虫列表获取失败:%s", err))
 			return false, "project_spider_number_error"
 		}
 		spider := new(Spider)

@@ -187,7 +187,7 @@
                     textAlign: 'center',
                     title: 'id',
                     width: 50
-                },  {
+                }, {
                     field: 'spider_name',
                     textAlign: 'center',
                     title: '爬虫名称',
@@ -201,6 +201,7 @@
                 }, {
                     field: 'host',
                     title: '所在服务器',
+                    width: "auto"
                 }, {
                     field: 'start_time',
                     title: '开始时间',
@@ -209,6 +210,11 @@
                     field: 'duration',
                     title: '持续时间',
                 }, {
+                    field: 'job_id',
+                    textAlign: 'center',
+                    title: '任务id',
+                    width: "auto",
+                },  {
                     field: 'status',
                     title: '状态',
                     autoHide: false,
@@ -221,7 +227,7 @@
                         }else if (row.status == "running"){
                             return `<span class="kt-badge kt-badge--info kt-badge--inline">运行中</span>`;
                         }else  if (row.status == "cancelled"){
-                            return `<span class="kt-badge kt-badge--danger kt-badge--inline">已取消</span>`;
+                            return `<span class="kt-badge kt-badge--success kt-badge--inline">已取消</span>`;
                         }else {
                             return `<span class="kt-badge kt-badge--success kt-badge--inline">已完成</span>`;
                         }

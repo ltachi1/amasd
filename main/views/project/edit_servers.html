@@ -48,7 +48,7 @@
                             <div class="form-group row">
                                 <label class="col-2 col-form-label text-right">现有服务器 </label>
                                 <div class="col-9">
-                                    <select style="display:none" class="form-control kt-selectpicker" title="请选择服务器" multiple  data-live-search="true" data-header="选择服务器" name="serverIds" >
+                                    <select style="display:none" class="form-control kt-selectpicker" title="请选择服务器" multiple data-actions-box="true" data-live-search="true" data-header="选择服务器" name="serverIds" >
                                         {{range .servers}}
                                             <option data-subtext="{{.alias}}" value="{{.id}}" {{if eq .selected "1"}}selected{{end}}>{{.host}}</option>
                                         {{end}}

@@ -2,7 +2,6 @@ package models
 
 import (
 	"scrapyd-admin/core"
-	"regexp"
 	"github.com/ltachi1/logrus"
 	"fmt"
 	"time"
@@ -31,17 +30,16 @@ var (
 
 //添加服务器
 func (s *Server) InsertOne() (bool, string) {
-	ipPortReg := regexp.MustCompile(`^\d+\.\d+\.\d+\.\d+:\d+$`)
-	if !ipPortReg.MatchString(s.Host) {
-		return false, "host_error"
+	if s.Host[len(s.Host) - 1:] == "/" {
+		s.Host = s.Host[:len(s.Host) - 1]
 	}
 	//校验服务器是否已经添加过
 	if count, _ := core.Db.Where("host = ?", s.Host).Table(s).Count(); count > 0 {
 		return false, "host_repeat_error"
 	}
 	//检验服务器是否可用
-	scrapyd := Scrapyd{Host: s.Host}
-	if !scrapyd.DaemonStatus() {
+	scrapyd := Scrapyd{Host: s.Host, Auth: s.Auth, Username: s.Username, Password: s.Password}
+	if err := scrapyd.DaemonStatus(); err != nil {
 		return false, "scrapyd_server_error"
 	}
 
@@ -150,16 +148,18 @@ func (s *Server) DetectionStatus() {
 				Username: server.Username,
 				Password: server.Password,
 			}
-			if scrapyd.DaemonStatus() {
+			if err := scrapyd.DaemonStatus(); err == nil {
 				if server.Status == ServerStatusFault {
+					core.WriteLog(core.LogTypeServer, logrus.InfoLevel, logrus.Fields{"host": server.Host}, "scrapyd服务恢复正常")
 					if _, error := core.Db.Id(server.Id).Update(&Server{Status: ServerStatusNormal}); error != nil {
-						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, error)
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务状态更新失败:%s", error))
 					}
 				}
 			} else {
 				if server.Status == ServerStatusNormal {
+					core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务异常:%s", err))
 					if _, error := core.Db.Id(server.Id).Update(&Server{Status: ServerStatusFault}); error != nil {
-						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, error)
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务状态更新失败:%s", error))
 					}
 				}
 			}
