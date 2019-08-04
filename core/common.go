@@ -21,6 +21,15 @@ func IsUrl(url string) bool {
 	return urlReg.MatchString(url)
 }
 
+//补全url
+func CompletionUrl(url string) string {
+	if IsUrl(url) {
+		return url
+	} else {
+		return fmt.Sprintf("http://%s", url)
+	}
+}
+
 //验证邮箱
 func IsEmail(email string) bool {
 	emailReg := regexp.MustCompile(`^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`)

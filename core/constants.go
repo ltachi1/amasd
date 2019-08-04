@@ -57,6 +57,7 @@ var (
 		"project_server_error":              gin.H{"msg": "请选择已有服务器"},
 		"project_server_relation_error":     gin.H{"code": 4001, "msg": "部分服务器关联失败,请重试，包括: "},
 		"project_update_version_error":      gin.H{"msg": "部分服务器版本更新失败，请重新操作"},
+		"project_no_server":                 gin.H{"msg": "当前项目无可用服务器,请先关联服务器"},
 		"project_server_relation_all_error": gin.H{"msg": "服务器关联失败，请重新操作"},
 		"task_running_error":                gin.H{"msg": "当前项目有正在运行的爬虫不允许更新，请手动关闭或等待执行完"},
 		"project_spider_number_error":       gin.H{"msg": "获取不到项目下爬虫信息，请重新尝试"},
