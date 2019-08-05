@@ -65,7 +65,7 @@
             <!-- begin:: Aside Menu -->
             <div class="kt-aside-menu-wrapper kt-grid__item kt-grid__item--fluid" id="kt_aside_menu_wrapper">
                 <div id="kt_aside_menu" class="kt-aside-menu " data-ktmenu-vertical="1" data-ktmenu-scroll="1" data-ktmenu-dropdown-timeout="500">
-                    <ul class="kt-menu__nav ">
+                    <ul class="kt-menu__nav" id="main-menu">
                         {{.menuStr}}
                     </ul>
                 </div>
@@ -188,6 +188,10 @@
             var win=$("#mainFrame")[0].contentWindow;
             var location = win.location;
             location.href = location.pathname + location.search
+        });
+        $("#main-menu>.kt-menu__item").on("click", function(){
+            $(this).siblings().removeClass("kt-menu__item--active");
+            $(this).addClass("kt-menu__item--active");
         });
     })
 </script>
