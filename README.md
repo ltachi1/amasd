@@ -36,7 +36,7 @@
 ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/add_task.jpg)
 
 - 添加计划任务
-![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/add_schedule.jpg)
+![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/add_schedule.png)
 
 - 计划任务列表
 ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/schedule_list.jpg)
