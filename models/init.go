@@ -22,7 +22,7 @@ func init() {
 
 func InitTask() {
 	//定时检测服务器状态
-	core.Cron.AddFunc("*/5 * * * *", func() {
+	core.Cron.AddFunc("*/30 * * * *", func() {
 		new(Server).DetectionStatus()
 	}, "DetectionServerStatus")
 	//定时检测任务状态
