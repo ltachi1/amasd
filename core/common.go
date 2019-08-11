@@ -30,10 +30,21 @@ func CompletionUrl(url string) string {
 	}
 }
 
+func IsNumber(s string) bool {
+	result, _ := regexp.MatchString(`^\d+$`, s)
+	return result
+}
+
 //验证邮箱
 func IsEmail(email string) bool {
 	emailReg := regexp.MustCompile(`^[0-9a-z][_.0-9a-z-]{0,31}@([0-9a-z][0-9a-z-]{0,30}[0-9a-z]\.){1,4}[a-z]{2,4}$`)
 	return emailReg.MatchString(email)
+}
+
+//验证域名 xxx.xx.xx 或者 xxx.xx.xx.xx
+func IsDomain(d string) bool {
+	result, _ := regexp.MatchString(`^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$`, d)
+	return result
 }
 
 //判断元素是否在数字数组中
@@ -65,8 +76,8 @@ func IsAjax(c *gin.Context) bool {
 }
 
 //错误跳转
-func Error(c *gin.Context, message gin.H) {
-	c.HTML(http.StatusOK, "index/error", gin.H{"message": message["msg"]})
+func Error(c *gin.Context, message string) {
+	c.HTML(http.StatusOK, "index/error", gin.H{"message": message})
 	c.Abort()
 }
 
@@ -83,10 +94,24 @@ func Bytes2Str(b []byte) string {
 }
 
 //格式化字符串类型的时间戳
-func FormatDateByString(timestamp string, format string) string {
+func FormatDateByString(timestamp string, format ...string) string {
 	r, _ := strconv.ParseInt(timestamp, 10, 64)
-	return time.Unix(r, 0).Format(format)
+	if len(format) == 0 {
+		return time.Unix(r, 0).Format("2006-01-02 15:04:05")
+	} else {
+		return time.Unix(r, 0).Format(format[0])
+	}
 }
+
+//格式化当前系统时间
+func NowToDate(format ...string) string {
+	if len(format) == 0 {
+		return time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
+	} else {
+		return time.Unix(time.Now().Unix(), 0).Format(format[0])
+	}
+}
+
 
 //日期格式化成时间戳
 func DateToTimestamp(date string) int {

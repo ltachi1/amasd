@@ -17,8 +17,7 @@
 <script src="/assets/demo/default/base/scripts.bundle.min.js" type="text/javascript"></script>
 
 <script src="/assets/app/bundle/app.bundle.min.js" type="text/javascript"></script>
-<script src="/assets/vendors/general/artDialog/artDialog.js"></script>
-<script src="/assets/vendors/general/artDialog/iframeTools.js"></script>
+<script src="/assets/vendors/general/artDialog/dialog-plus.min.js"></script>
 <script src="/assets/js/common.min.js"></script>
 <script>
     $(function(){
@@ -43,16 +42,15 @@
                     if (form.find('input.J_check:checked').length) {
                         var msg = btn.data('msg');
                         if (msg) {
-                            art.dialog({
+                            dialog({
                                 id: 'warning',
-                                icon: 'warning',
                                 content: btn.data('msg'),
-                                cancelVal: '关闭',
+                                cancelValue: '关闭',
                                 cancel: function () {
                                     btn.data('subcheck', false);
                                     btn.click();
                                 }
-                            });
+                            }).showModal();
                         } else {
                             btn.data('subcheck', false);
                             btn.click();
@@ -73,7 +71,7 @@
                         }
                     });
                 }
-                var loading_dialog = art.dialog({id: 'loading',fixed: true,lock: true,background: "#CCCCCC",opacity: 0,esc:false,title: false,cancel:false});
+                vq.common.block();
                 form.ajaxSubmit({
                     url: btn.data('action') ? btn.data('action') : form.attr('action'), //按钮上是否自定义提交地址(多按钮情况)
                     dataType: 'json',
@@ -86,7 +84,7 @@
                         var text = btn.text();
                         //按钮文案、状态修改
                         btn.removeClass('disabled').removeAttr('disabled');
-                        loading_dialog.close();
+                        vq.common.unblock();
                         if (data.code) {
                             vq.common.success({content:data.msg,callback:function(){
                                     location.reload();

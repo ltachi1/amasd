@@ -30,8 +30,8 @@ var (
 
 //添加服务器
 func (s *Server) InsertOne() (bool, string) {
-	if s.Host[len(s.Host) - 1:] == "/" {
-		s.Host = s.Host[:len(s.Host) - 1]
+	if s.Host[len(s.Host)-1:] == "/" {
+		s.Host = s.Host[:len(s.Host)-1]
 	}
 	//校验服务器是否已经添加过
 	if count, _ := core.Db.Where("host = ?", s.Host).Table(s).Count(); count > 0 {
@@ -158,6 +158,13 @@ func (s *Server) DetectionStatus() {
 			} else {
 				if server.Status == ServerStatusNormal {
 					core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务异常:%s", err))
+					go noticeOptionsDispatch(NoticeOptionScrapyd, core.B{
+						"title":         core.NoticeSettings["scrapyd_service_title"],
+						"content":       core.NoticeSettings["scrapyd_service_content"],
+						"host":          server.Host,
+						"error_time":    core.NowToDate(),
+						"error_message": err.Error(),
+					})
 					if _, error := core.Db.Id(server.Id).Update(&Server{Status: ServerStatusFault}); error != nil {
 						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务状态更新失败:%s", error))
 					}

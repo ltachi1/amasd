@@ -23,10 +23,6 @@ func (i *Index) Index(c *gin.Context) {
 	})
 }
 
-func (i *Index) Main(c *gin.Context) {
-	c.HTML(http.StatusOK, "index/main", gin.H{})
-}
-
 func (i *Index) Login(c *gin.Context) {
 	c.HTML(http.StatusOK, "index/login", gin.H{})
 }
@@ -37,12 +33,12 @@ func (i *Index) DoLogin(c *gin.Context) {
 	if err := c.ShouldBind(&admin); err == nil {
 		ok, code := admin.Login()
 		if !ok {
-			i.Fail(c, core.PromptMsg[code])
+			i.Fail(c, code)
 			return
 		}
-		i.Success(c)
+		i.Success(c, nil)
 	} else {
-		i.Fail(c, core.PromptMsg["fail"])
+		i.Fail(c)
 	}
 }
 

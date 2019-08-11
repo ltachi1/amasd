@@ -17,7 +17,7 @@ func (p *ProjectHistory) FindByProjectId() []core.B {
 	projectHistory := make([]core.B, 0)
 	core.Db.Where("project_id = ?", p.ProjectId).Table(p).OrderBy("create_time desc").Find(&projectHistory)
 	for i := 0; i < len(projectHistory); i++ {
-		projectHistory[i]["create_time"] = core.FormatDateByString(projectHistory[i]["create_time"], "2006-01-02 15:04:05")
+		projectHistory[i]["create_time"] = core.FormatDateByString(projectHistory[i]["create_time"])
 	}
 	return projectHistory
 }

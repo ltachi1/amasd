@@ -22,7 +22,6 @@ func Register(e *gin.Engine) {
 	e.Use(core.CheckLoginStatus(new(core.WebAuth)))
 	e.GET("/logout", new(Index).Logout)
 	e.GET("/index", new(Index).Index)
-	e.GET("/index/main", new(Index).Main)
 
 	//不需要权限验证的
 	e.GET("/not_auth/getVersionsByProjectId", new(NotAuth).GetVersionsByProjectId)
@@ -69,6 +68,9 @@ func Register(e *gin.Engine) {
 	postAndGet(e, "/task/task/addSchedules", new(Task).AddSchedules)
 	postAndGet(e, "/task/task/updateSchedulesStatus", new(Task).UpdateSchedulesStatus)
 	postAndGet(e, "/task/task/delSchedules", new(Task).DelSchedules)
+
+	//通知设置
+	postAndGet(e, "/notice/notice/setting", new(Notice).Setting)
 }
 
 //注册post和get方法

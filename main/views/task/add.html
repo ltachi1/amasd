@@ -83,11 +83,7 @@
             'project':{required:"请选择一个项目"}
         },
         fail: function(data){
-            if(data.code == 4001){
-                vq.common.error({"content": data.msg + data.errorServerList})
-            }else{
-                vq.common.error({"content": data.msg})
-            }
+            vq.common.error({"content": data.msg})
         }
     });
     function relationServer(value){

@@ -103,8 +103,8 @@ func (t *Task) RunTask(taskId int) {
 		if uint8(serverStatus) == ServerStatusNormal {
 			auth, _ := strconv.Atoi(task["auth"])
 			scrapyd := Scrapyd{
-				Host: task["host"],
-				Auth: uint8(auth),
+				Host:     task["host"],
+				Auth:     uint8(auth),
 				Username: task["username"],
 				Password: task["password"],
 			}
@@ -155,7 +155,7 @@ func (t *Task) FindTaskPages(projectId int, version string, serverId int, status
 			endTimestamp = int(time.Now().Unix())
 		}
 		if tasks[i]["start_time"] != "0" {
-			tasks[i]["start_time"] = core.FormatDateByString(tasks[i]["start_time"], "2006-01-02 15:04:05")
+			tasks[i]["start_time"] = core.FormatDateByString(tasks[i]["start_time"])
 		} else {
 			tasks[i]["start_time"] = ""
 		}
@@ -304,7 +304,7 @@ func (t *Task) DelAll(projectId int, version string, serverId int, status string
 func (t *Task) DetectionStatus() {
 	taskList := make([]core.B, 0)
 	//获取所有正在运行或者待运行的任务
-	core.Db.Select("t.id,t.job_id,t.project_name,t.status as task_status,t.version,s.auth,s.username,s.password,s.status as server_status,s.host").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("(t.status = ? or t.status = ?) and t.job_id<>\"\"", TaskStatusPending, TaskStatusRunning).Find(&taskList)
+	core.Db.Select("t.id,t.job_id,t.project_name,t.status as task_status,t.version,t.spider_name,s.auth,s.username,s.password,s.status as server_status,s.host").Table("task").Alias("t").Join("INNER", "server as s", "t.server_id = s.id").Where("(t.status = ? or t.status = ?) and t.job_id<>\"\"", TaskStatusPending, TaskStatusRunning).Find(&taskList)
 	serverProjectList := make(map[string]core.B, 0)
 	serverProjectTaskList := make(map[string][]core.B, 0)
 	for _, task := range taskList {
@@ -329,8 +329,12 @@ func (t *Task) DetectionStatus() {
 				Password: sp["password"],
 			}
 			taskStatusList := map[string]core.B{}
+			var (
+				err    error
+				result map[string][]interface{}
+			)
 			//获取当前服务器任务列表
-			if err, result := scrapyd.ListJobs(sp["project_name"]); err == nil {
+			if err, result = scrapyd.ListJobs(sp["project_name"]); err == nil {
 				//遍历三个不同状态的任务列表
 				for _, v := range result["pending"] {
 					job := v.(map[string]interface{})
@@ -374,13 +378,28 @@ func (t *Task) DetectionStatus() {
 							})
 							core.WriteLog(core.LogTypeTask, logrus.InfoLevel, logrus.Fields{"task_id": task["id"], "job_id": task["job_id"], "host": sp["host"], "project_name": sp["project_name"], "version": task["version"]}, "任务开始执行")
 						} else if taskStatus["status"] == TaskStatusFinished {
+							stt := core.DateToTimestamp(taskStatus["start_time"])
+							ett := core.DateToTimestamp(taskStatus["end_time"])
 							updateTask = append(updateTask, core.B{
 								"id":         task["id"],
 								"status":     TaskStatusFinished,
-								"start_time": strconv.Itoa(core.DateToTimestamp(taskStatus["start_time"])),
-								"end_time":   strconv.Itoa(core.DateToTimestamp(taskStatus["end_time"])),
+								"start_time": strconv.Itoa(stt),
+								"end_time":   strconv.Itoa(ett),
 							})
 							core.WriteLog(core.LogTypeTask, logrus.InfoLevel, logrus.Fields{"task_id": task["id"], "job_id": task["job_id"], "host": sp["host"], "project_name": sp["project_name"], "version": task["version"]}, "任务执行结束")
+							go noticeOptionsDispatch(NoticeOptionTaskFinished, core.B{
+								"title":         core.NoticeSettings["task_finished_title"],
+								"content":       core.NoticeSettings["task_finished_content"],
+								"job_id":        task["job_id"],
+								"task_id":       task["id"],
+								"host":          sp["host"],
+								"project":       sp["project_name"],
+								"version":       task["version"],
+								"spider":        task["spider_name"],
+								"start_time":    core.FormatDateByString(strconv.Itoa(stt)),
+								"end_time":      core.FormatDateByString(strconv.Itoa(ett)),
+								"duration_time": core.TimeDifference(stt, ett),
+							})
 						}
 					}
 				} else {
@@ -394,6 +413,22 @@ func (t *Task) DetectionStatus() {
 						"end_time": strconv.Itoa(int(time.Now().Unix())),
 					})
 					core.WriteLog(core.LogTypeTask, logrus.ErrorLevel, logrus.Fields{"task_id": task["id"], "job_id": task["job_id"], "host": sp["host"], "project_name": sp["project_name"], "version": task["version"]}, "任务状态异常")
+					errorMessage := "未知异常"
+					if err != nil {
+						errorMessage = err.Error()
+					}
+					go noticeOptionsDispatch(NoticeOptionTaskError, core.B{
+						"title":         core.NoticeSettings["task_error_title"],
+						"content":       core.NoticeSettings["task_error_content"],
+						"job_id":        task["job_id"],
+						"task_id":       task["id"],
+						"host":          sp["host"],
+						"project":       sp["project_name"],
+						"version":       task["version"],
+						"spider":        task["spider_name"],
+						"error_time":    core.NowToDate(),
+						"error_message": errorMessage,
+					})
 				}
 			}
 			wg.Done()

@@ -1,0 +1,259 @@
+{{define "notice/setting"}}
+{{template "layout/header"}}
+<link href="/assets/vendors/general/summernote/summernote.min.css" rel="stylesheet" type="text/css" />
+<style>
+    .modal .form-group .kt-block-inline {width:105px;}
+</style>
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">通知设置</h3>
+        </div>
+    </div>
+    <div class="kt-content" id="kt_content">
+        <form class="kt-form" id="form" method="post" action="/notice/notice/setting">
+            <div class="row">
+                <div class="col-lg-12">
+                    <!--begin::Portlet-->
+                    <div class="kt-portlet">
+                        <div class="kt-portlet__head">
+                            <div class="kt-portlet__head-label">
+                                <h3 class="kt-portlet__head-title">通知配置项</h3>
+                            </div>
+                            <div class="kt-portlet__head-toolbar">
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-brand" name="submit" value="提交">提交</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kt-portlet__body">
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">通知项</label>
+                                <div class="col-9">
+                                    <div class="kt-checkbox-inline">
+                                        <div class="kt-margin-b-15">
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="scrapyd_service" value="enabled" {{if eq .settings.scrapyd_service "enabled"}}checked{{end}}> scrpayd服务异常
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" data-content="{{.settings.scrapyd_service_content}}" data-html="true" data-original-title="{{.settings.scrapyd_service_title}}"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_4"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
+                                        <div class="kt-margin-b-15">
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="task_finished" value="enabled" {{if eq .settings.task_finished "enabled"}}checked{{end}}> 任务运行结束
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" data-content="{{.settings.task_finished_content}}" data-html="true" data-original-title="{{.settings.task_finished_title}}"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_5"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
+                                        <div>
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="task_error" value="enabled" {{if eq .settings.task_error "enabled"}}checked{{end}}> 任务运行异常
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" data-content="{{.settings.task_error_content}}" data-html="true" data-original-title="{{.settings.task_error_title}}"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_6"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-2 col-form-label text-right">通知类型</label>
+                                <div class="col-9">
+                                    <div class="kt-checkbox-inline">
+                                        <label class="kt-checkbox" style="width: 150px;">
+                                            <input type="checkbox" name="email" value="enabled" {{if eq .settings.email "enabled"}}checked{{end}}> 邮件通知
+                                            <span></span>
+                                        </label>
+                                        <a href="javascript:;" data-toggle="kt-popover" title="" data-content="发件人：{{.settings.email_sender_address}}<br>收件人：{{.settings.email_addressee}}" data-html="true" data-original-title="邮箱设置"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                        <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_7"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="kt_modal_4" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">scrpayd服务异常通知设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>标题</label>
+                                <input type="text" class="form-control" name="scrapyd_service_title" id="scrapyd_service_title" value="{{.settings.scrapyd_service_title}}" maxlength="50">
+                                <span class="form-text">不超过50个字符</span>
+                            </div>
+                            <div class="form-group">
+                                <label>内容</label>
+                                <textarea class="form-control summernote" name="scrapyd_service_content" id="scrapyd_service_content">{{.settings.scrapyd_service_content}}</textarea>
+                                <span class="form-text">不超过2000个字符</span>
+                                <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
+                                <span class="form-text"><span class="kt-font-danger kt-block-inline">{host}</span>=>&nbsp;&nbsp;出现异常服务器的host</span>
+                                <span class="form-text"><span class="kt-font-danger kt-block-inline">{error_time}</span>=>&nbsp;&nbsp;出现异常的时间</span>
+                                <span class="form-text"><span class="kt-font-danger kt-block-inline">{error_message}</span>=>&nbsp;&nbsp;异常信息</span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="kt_modal_5" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">任务运行结束通知设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>标题</label>
+                                <input type="text" class="form-control" name="task_finished_title" id="task_finished_title" maxlength="50" value="{{.settings.task_finished_title}}">
+                                <span class="form-text">不超过50个字符</span>
+                            </div>
+                            <div class="form-group">
+                                <label>内容</label>
+                                <textarea class="form-control summernote" name="task_finished_content" id="task_finished_content">{{.settings.task_finished_content}}</textarea>
+                                <span class="form-text">不超过2000个字符</span>
+                                <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
+                                <div class="row">
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{job_id}</span>=>&nbsp;&nbsp;对应scrapyd里边的jobid</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{task_id}</span>=>&nbsp;&nbsp;对应任务列表中的id</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{host}</span>=>&nbsp;&nbsp;所运行的服务器host</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{project}</span>=>&nbsp;&nbsp;任务所属项目</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{version}</span>=>&nbsp;&nbsp;任务所属项目版本号</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{spider}</span>=>&nbsp;&nbsp;任务中爬虫名称</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{start_time}</span>=>&nbsp;&nbsp;任务开始时间</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{end_time}</span>=>&nbsp;&nbsp;任务结束时间</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{duration_time}</span>=>&nbsp;&nbsp;任务持续运行时间</span>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="kt_modal_6" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">任务运行异常通知设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>标题</label>
+                                <input type="text" class="form-control" name="task_error_title" id="task_error_title" maxlength="50" value="{{.settings.task_error_title}}">
+                                <span class="form-text">不超过50个字符</span>
+                            </div>
+                            <div class="form-group">
+                                <label>内容</label>
+                                <textarea class="form-control summernote" name="task_error_content" id="task_error_content">{{.settings.task_error_content}}</textarea>
+                                <span class="form-text">不超过2000个字符</span>
+                                <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
+                                <div class="row">
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{job_id}</span>=>&nbsp;&nbsp;对应scrapyd里边的jobid</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{task_id}</span>=>&nbsp;&nbsp;对应任务列表中的id</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{host}</span>=>&nbsp;&nbsp;所运行的服务器host</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{project}</span>=>&nbsp;&nbsp;任务所属项目</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{version}</span>=>&nbsp;&nbsp;任务所属项目版本号</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{spider}</span>=>&nbsp;&nbsp;任务中爬虫名称</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{error_time}</span>=>&nbsp;&nbsp;任务异常发生时间</span>
+                                    <span class="form-text col-6"><span class="kt-font-danger kt-block-inline">{error_message}</span>=>&nbsp;&nbsp;任务异常信息</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="modal fade" id="kt_modal_7" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">邮箱设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <div class="col-6">
+                                    <label>发件服务器</label>
+                                    <input type="text" class="form-control" name="email_smtp" id="email_smtp" placeholder="例如: smtp.163.com" maxlength="50" value="{{.settings.email_smtp}}">
+                                </div>
+                                <div class="col-6">
+                                    <label>发件服务器端口</label>
+                                    <input type="number" class="form-control" name="email_smtp_port" id="email_smtp_port" placeholder="例如: 465" min="1" value="{{.settings.email_smtp_port}}">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-6">
+                                    <label>发件人邮箱地址</label>
+                                    <input type="text" class="form-control" name="email_sender_address" id="email_sender_address" placeholder="例如: xxxx@163.com" maxlength="50" value="{{.settings.email_sender_address}}">
+                                </div>
+                                <div class="col-6">
+                                    <label>发件人别名</label>
+                                    <input type="text" class="form-control" name="email_sender" id="email_sender" placeholder="例如: Scrapyd Admin 通知" maxlength="50" value="{{.settings.email_sender}}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>发件人邮箱密码</label>
+                                <input type="password" class="form-control" name="email_sender_password" id="email_sender_password" autocomplete="new-password" maxlength="20" value="{{.settings.email_sender_password}}">
+                            </div>
+                            <div class="form-group">
+                                <label>收件人邮箱地址</label>
+                                <input type="text" class="form-control" name="email_addressee" id="email_addressee" maxlength="50" value="{{.settings.email_addressee}}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/summernote/summernote.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/summernote/summernote-zh-CN.min.js" type="text/javascript"></script>
+<script>
+    $(function(){
+        $('.summernote').summernote({
+            height: 150,
+            lang: 'zh-CN',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+            ]
+        });
+    });
+    vq.common.submitForm({
+        id:'form',
+        successInfo:'继续修改',
+    });
+</script>
+{{end}}

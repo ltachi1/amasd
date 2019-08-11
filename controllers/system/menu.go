@@ -6,6 +6,8 @@ import (
 	"scrapyd-admin/core"
 	"scrapyd-admin/models"
 	"strconv"
+	"unicode/utf8"
+	"strings"
 )
 
 type Menu struct {
@@ -27,13 +29,53 @@ func (a *Menu) Add(c *gin.Context) {
 	if core.IsAjax(c) {
 		var menu models.Menu
 		if err := c.ShouldBind(&menu); err == nil {
+			if menu.Name == "" {
+				a.Fail(c, "system_menu_name_error")
+				return
+			}
+			if utf8.RuneCountInString(menu.Name) > 50 {
+				a.Fail(c, "extra_long_error", "菜单名称", "50")
+				return
+			}
+			if menu.App == "" {
+				a.Fail(c, "system_menu_app_error")
+				return
+			}
+			if utf8.RuneCountInString(menu.App) > 20 {
+				a.Fail(c, "extra_long_error", "模块", "20")
+				return
+			}
+			if menu.Controller == "" {
+				a.Fail(c, "system_menu_controller_error")
+				return
+			}
+			if utf8.RuneCountInString(menu.Controller) > 20 {
+				a.Fail(c, "extra_long_error", "控制器", "20")
+				return
+			}
+			if menu.Action == "" {
+				a.Fail(c, "system_menu_action_error")
+				return
+			}
+			if utf8.RuneCountInString(menu.Action) > 20 {
+				a.Fail(c, "extra_long_error", "方法", "20")
+				return
+			}
+			if utf8.RuneCountInString(menu.Parameter) > 50 {
+				a.Fail(c, "extra_long_error", "附加参数", "50")
+				return
+			}
+			if utf8.RuneCountInString(menu.Parameter) > 50 {
+				a.Fail(c, "extra_long_error", "图标", "50")
+				return
+			}
 			if menu.Insert() {
-				a.Success(c)
+				a.Success(c, nil)
 			} else {
-				a.Fail(c, core.PromptMsg["add_error"])
+				a.Fail(c, "add_error")
 			}
 		} else {
-			a.Fail(c, core.PromptMsg["add_error"])
+			a.Fail(c, "add_error")
 		}
 	} else {
 		parentId, _ := strconv.Atoi(c.DefaultQuery("parent_id", "0"))
@@ -49,35 +91,59 @@ func (a *Menu) Edit(c *gin.Context) {
 	if core.IsAjax(c) {
 		id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
 		parentId, _ := strconv.Atoi(c.DefaultPostForm("parent_id", ""))
-		name := c.DefaultPostForm("name", "")
-		app := c.DefaultPostForm("app", "")
-		controller := c.DefaultPostForm("controller", "")
-		action := c.DefaultPostForm("action", "")
-		parameter := c.DefaultPostForm("parameter", "")
-		icon := c.DefaultPostForm("icon", "")
+		name := strings.Trim(c.DefaultPostForm("name", ""), " ")
+		app := strings.Trim(c.DefaultPostForm("app", ""), " ")
+		controller := strings.Trim(c.DefaultPostForm("controller", ""), " ")
+		action := strings.Trim(c.DefaultPostForm("action", ""), " ")
+		parameter := strings.Trim(c.DefaultPostForm("parameter", ""), " ")
+		icon := strings.Trim(c.DefaultPostForm("icon", ""), " ")
 		status, _ := strconv.Atoi(c.DefaultPostForm("status", ""))
-		if id == 0 {
-			a.Fail(c, core.PromptMsg["parameter_error"])
+		if id <= 0 || parentId <= 0 {
+			a.Fail(c, "parameter_error")
 			return
 		}
 		if name == "" {
-			a.Fail(c, core.PromptMsg["system_menu_name_error"])
+			a.Fail(c, "system_menu_name_error")
+			return
+		}
+		if utf8.RuneCountInString(name) > 50 {
+			a.Fail(c, "extra_long_error", "菜单名称", "50")
 			return
 		}
 		if app == "" {
-			a.Fail(c, core.PromptMsg["system_menu_app_error"])
+			a.Fail(c, "system_menu_app_error")
+			return
+		}
+		if utf8.RuneCountInString(app) > 20 {
+			a.Fail(c, "extra_long_error", "模块", "20")
 			return
 		}
 		if controller == "" {
-			a.Fail(c, core.PromptMsg["system_menu_controller_error"])
+			a.Fail(c, "system_menu_controller_error")
+			return
+		}
+		if utf8.RuneCountInString(controller) > 20 {
+			a.Fail(c, "extra_long_error", "控制器", "20")
 			return
 		}
 		if action == "" {
-			a.Fail(c, core.PromptMsg["system_menu_action_error"])
+			a.Fail(c, "system_menu_action_error")
+			return
+		}
+		if utf8.RuneCountInString(action) > 20 {
+			a.Fail(c, "extra_long_error", "方法", "20")
+			return
+		}
+		if utf8.RuneCountInString(parameter) > 50 {
+			a.Fail(c, "extra_long_error", "附加参数", "50")
+			return
+		}
+		if utf8.RuneCountInString(icon) > 50 {
+			a.Fail(c, "extra_long_error", "图标", "50")
 			return
 		}
 		if !(status == models.MenuStatusEnable || status == models.MenuStatusDisable) {
-			a.Fail(c, core.PromptMsg["system_menu_status_error"])
+			a.Fail(c, "system_menu_status_error")
 			return
 		}
 
@@ -92,9 +158,9 @@ func (a *Menu) Edit(c *gin.Context) {
 			"status":     status,
 		})
 		if err == nil {
-			a.Success(c)
+			a.Success(c, nil)
 		} else {
-			a.Fail(c, core.PromptMsg["update_error"])
+			a.Fail(c, "update_error")
 		}
 	} else {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
@@ -120,14 +186,18 @@ func (a *Menu) EditStatus(c *gin.Context) {
 	if core.IsAjax(c) {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 		status, _ := strconv.Atoi(c.DefaultQuery("status", "0"))
+		if id <= 0 {
+			a.Fail(c, "parameter_error")
+			return
+		}
 		if !(status == models.MenuStatusEnable || status == models.MenuStatusDisable) {
-			a.Fail(c, core.PromptMsg["parameter_error"])
+			a.Fail(c, "parameter_error")
 			return
 		}
 		if error := new(models.Menu).Update(id, core.A{"status": status}); error == nil {
-			a.Success(c)
+			a.Success(c, nil)
 		} else {
-			a.Fail(c, core.PromptMsg["update_error"])
+			a.Fail(c, "update_error")
 		}
 	}
 }
@@ -135,16 +205,15 @@ func (a *Menu) EditStatus(c *gin.Context) {
 //删除菜单
 func (a *Menu) Del(c *gin.Context) {
 	id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
-	if id == 0 {
-		a.Fail(c, core.PromptMsg["parameter_error"])
+	if id <= 0 {
+		a.Fail(c, "parameter_error")
 		return
 	}
 	sm := new(models.Menu)
 	sm.Id = id
 	if ok := sm.DeleteById(); ok {
-		a.Success(c)
+		a.Success(c, nil)
 	} else {
-		a.Fail(c, core.PromptMsg["del_error"])
+		a.Fail(c, "del_error")
 	}
-
 }

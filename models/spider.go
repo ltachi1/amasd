@@ -100,7 +100,7 @@ func (s *Spider) FindPageSpiders(projectId int, version string, page int, pageSi
 	totalCount, _ := countObj.Count()
 	selectObj.OrderBy("create_time desc").Limit(pageSize, (page-1)*pageSize).Find(&spiders)
 	for i := 0; i < len(spiders); i++ {
-		spiders[i]["create_time"] = core.FormatDateByString(spiders[i]["create_time"], "2006-01-02 15:04:05")
+		spiders[i]["create_time"] = core.FormatDateByString(spiders[i]["create_time"])
 	}
 	return spiders, int(totalCount)
 }

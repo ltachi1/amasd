@@ -16,13 +16,13 @@ type NotAuth struct {
 func (n *NotAuth) GetVersionsByProjectId(c *gin.Context) {
 	projectId, _ := strconv.Atoi(c.DefaultQuery("project_id", "0"))
 	if projectId <= 0 {
-		n.Fail(c, core.PromptMsg["parameter_error"])
+		n.Fail(c, "parameter_error")
 		return
 	}
 	projectHistory := models.ProjectHistory{
 		ProjectId: projectId,
 	}
-	n.Success(c, gin.H{
+	n.Success(c, core.A{
 		"projectHistories": projectHistory.FindByProjectId(),
 	})
 }
@@ -30,14 +30,14 @@ func (n *NotAuth) GetVersionsByProjectId(c *gin.Context) {
 func (n *NotAuth) GetSpidersAndServersByProjectId(c *gin.Context) {
 	project := c.DefaultQuery("project", "")
 	if project == "" {
-		n.Fail(c, core.PromptMsg["parameter_error"])
+		n.Fail(c, "parameter_error")
 		return
 	}
 	projectInfo := strings.Split(project, "|")
 	projectId, _ := strconv.Atoi(projectInfo[0])
 	spider := new(models.Spider)
 	server := new(models.Server)
-	n.Success(c, gin.H{
+	n.Success(c, core.A{
 		"spiders": spider.FindByProjectIdAndVersion(projectId, projectInfo[2]),
 		"servers": server.FindByProjectId(projectId),
 	})

@@ -72,10 +72,10 @@ func (a *Admin) Update(id int, data core.B) error {
 }
 
 func (a *Admin) Create() (int, string) {
-	//查询邮箱是否重复
-	count, _ := core.Db.Table(a).Where("email = ?", a.Email).Count()
+	//查询用户名是否重复
+	count, _ := core.Db.Table(a).Where("username = ?", a.Username).Count()
 	if count > 0 {
-		return 0, "system_email_repeat_error"
+		return 0, "system_username_repeat_error"
 	}
 	session := core.Db.NewSession()
 	defer session.Close()

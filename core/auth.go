@@ -31,7 +31,6 @@ func (w *WebAuth) Check(c *gin.Context) {
 	userInfo := session.Get(SessionUserInfoKey)
 	if userInfo == nil {
 		//如果没有登录信息则直接跳转到登录页面
-		//c.Redirect(http.StatusFound, "/login")
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(200, `<script>top.location.href="/login";</script>`)
 		c.Abort()
@@ -58,7 +57,7 @@ func (a *ApiAuth) Check(c *gin.Context) {
 	}
 	if td.LongestExp < time.Now().Unix() {
 		//token已过最长使用期限，需要重新登录
-		c.JSON(200, PromptMsg["no_login"])
+		c.JSON(200, gin.H{"code": 2, "msg": PromptMsg["no_login"]})
 		c.Abort()
 		return
 	} else {
@@ -86,7 +85,7 @@ func AuthValidateToken(c *gin.Context) {
 	}
 	if td.LongestExp < time.Now().Unix() {
 		//token已过最长使用期限，需要重新登录
-		c.JSON(200, PromptMsg["no_login"])
+		c.JSON(200, gin.H{"code": 2, "msg": PromptMsg["no_login"]})
 		c.Abort()
 		return
 	} else {
@@ -108,7 +107,6 @@ func GenerateToken(id int64) string {
 	})
 	return AesEncrypt(string(info))
 }
-
 
 //检查登录状态
 func CheckLoginStatus(a Auth) gin.HandlerFunc {

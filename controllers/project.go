@@ -7,6 +7,7 @@ import (
 	"scrapyd-admin/models"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 type Project struct {
@@ -47,15 +48,23 @@ func (p *Project) Add(c *gin.Context) {
 		serverIds, _ := c.GetPostFormArray("serverIds")
 		file, _ := c.FormFile("customFile")
 		if name == "" || relation == "" {
-			p.Fail(c, core.PromptMsg["parameter_error"])
+			p.Fail(c, "parameter_error")
+			return
+		}
+		if utf8.RuneCountInString(name) > 20 {
+			p.Fail(c, "extra_long_error", "项目名称", "20")
+			return
+		}
+		if utf8.RuneCountInString(lastVersion) > 20 {
+			p.Fail(c, "extra_long_error", "版本号", "20")
 			return
 		}
 		if relation == "yes" && len(serverIds) == 0 {
-			p.Fail(c, core.PromptMsg["project_server_error"])
+			p.Fail(c, "project_server_error")
 			return
 		}
 		if relation == "yes" && file == nil {
-			p.Fail(c, core.PromptMsg["file_upload_error"])
+			p.Fail(c, "file_upload_error")
 			return
 		}
 		project := models.Project{
@@ -63,14 +72,12 @@ func (p *Project) Add(c *gin.Context) {
 			LastVersion: lastVersion,
 		}
 		if ok, str, errorServerList := project.InsertOne(relation, core.StringArrayToInt(serverIds), file); ok {
-			p.Success(c)
+			p.Success(c, nil)
 		} else {
 			if len(errorServerList) > 0 {
-				promptMsg := core.PromptMsg[str]
-				promptMsg["errorServerList"] = strings.Join(errorServerList, ", ")
-				p.Fail(c, promptMsg)
+				p.Fail(c, str, strings.Join(errorServerList, ", "))
 			} else {
-				p.Fail(c, core.PromptMsg[str])
+				p.Fail(c, str)
 			}
 		}
 	} else {
@@ -87,8 +94,16 @@ func (p *Project) EditVersion(c *gin.Context) {
 		useHistoryVersion := strings.Trim(c.DefaultPostForm("useHistoryVersion", ""), " ")
 		version := strings.Trim(c.DefaultPostForm("version", ""), " ")
 		file, _ := c.FormFile("customFile")
+		if id <= 0 {
+			p.Fail(c, "parameter_error")
+			return
+		}
+		if utf8.RuneCountInString(version) > 20 {
+			p.Fail(c, "extra_long_error", "版本号", "20")
+			return
+		}
 		if file == nil {
-			p.Fail(c, core.PromptMsg["file_upload_error"])
+			p.Fail(c, "file_upload_error")
 			return
 		}
 
@@ -96,12 +111,16 @@ func (p *Project) EditVersion(c *gin.Context) {
 			Id: id,
 		}
 		if ok, err := project.UpdateVersion(useHistoryVersion, version, file); ok {
-			p.Success(c)
+			p.Success(c, nil)
 		} else {
-			p.Fail(c, core.PromptMsg[err])
+			p.Fail(c, err)
 		}
 	} else {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
+		if id <= 0 {
+			core.Error(c, core.PromptMsg["parameter_error"])
+			return
+		}
 		project := new(models.Project)
 		if !project.Get(id) {
 			core.Error(c, core.PromptMsg["parameter_error"])
@@ -123,18 +142,26 @@ func (p *Project) EditServers(c *gin.Context) {
 		id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
 		serverIds, _ := c.GetPostFormArray("serverIds")
 		file, _ := c.FormFile("customFile")
+		if id <= 0 {
+			p.Fail(c, "parameter_error")
+			return
+		}
 		project := new(models.Project)
 		if !project.Get(id) {
-			p.Fail(c, core.PromptMsg["parameter_error"])
+			p.Fail(c, "parameter_error")
 			return
 		}
 		if ok, err := project.UpdateServers(core.StringArrayToInt(serverIds), file); ok {
-			p.Success(c)
+			p.Success(c, nil)
 		} else {
-			p.Fail(c, core.PromptMsg[err])
+			p.Fail(c, err)
 		}
 	} else {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
+		if id <= 0 {
+			core.Error(c, core.PromptMsg["parameter_error"])
+			return
+		}
 		project := new(models.Project)
 		if !project.Get(id) {
 			core.Error(c, core.PromptMsg["parameter_error"])
@@ -167,10 +194,14 @@ func (p *Project) EditServers(c *gin.Context) {
 func (p *Project) Del(c *gin.Context) {
 	if core.IsAjax(c) {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
-		if ok, err := new(models.Project).Del(id); !ok {
-			p.Fail(c, core.PromptMsg[err])
+		if id <= 0 {
+			p.Fail(c, "parameter_error")
 			return
 		}
-		p.Success(c)
+		if ok, err := new(models.Project).Del(id); !ok {
+			p.Fail(c, err)
+			return
+		}
+		p.Success(c, nil)
 	}
 }
