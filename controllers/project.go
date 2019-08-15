@@ -43,6 +43,7 @@ func (p *Project) Index(c *gin.Context) {
 func (p *Project) Add(c *gin.Context) {
 	if core.IsAjax(c) {
 		name := strings.Trim(c.DefaultPostForm("name", ""), " ")
+		desc := strings.Trim(c.DefaultPostForm("desc", ""), " ")
 		lastVersion := strings.Trim(c.DefaultPostForm("lastVersion", ""), " ")
 		relation := strings.Trim(c.DefaultPostForm("relation", "no"), "")
 		serverIds, _ := c.GetPostFormArray("serverIds")
@@ -53,6 +54,10 @@ func (p *Project) Add(c *gin.Context) {
 		}
 		if utf8.RuneCountInString(name) > 20 {
 			p.Fail(c, "extra_long_error", "项目名称", "20")
+			return
+		}
+		if utf8.RuneCountInString(name) > 500 {
+			p.Fail(c, "extra_long_error", "项目描述", "500")
 			return
 		}
 		if utf8.RuneCountInString(lastVersion) > 20 {
@@ -69,6 +74,7 @@ func (p *Project) Add(c *gin.Context) {
 		}
 		project := models.Project{
 			Name:        name,
+			Desc:        desc,
 			LastVersion: lastVersion,
 		}
 		if ok, str, errorServerList := project.InsertOne(relation, core.StringArrayToInt(serverIds), file); ok {
@@ -84,6 +90,27 @@ func (p *Project) Add(c *gin.Context) {
 		c.HTML(http.StatusOK, "project/add", gin.H{
 			"servers": new(models.Server).Find(),
 		})
+	}
+}
+
+func (p *Project) EditDesc(c *gin.Context) {
+	if core.IsAjax(c) {
+		id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
+		desc := strings.Trim(c.DefaultPostForm("desc", ""), " ")
+		if id <= 0 {
+			p.Fail(c, "parameter_error")
+			return
+		}
+		if utf8.RuneCountInString(desc) > 500 {
+			p.Fail(c, "extra_long_error", "项目描述", "500")
+			return
+		}
+
+		if err := new(models.Project).Update(id, core.A{"desc": desc}); err == nil {
+			p.Success(c, nil)
+		} else {
+			p.Fail(c, "update_error")
+		}
 	}
 }
 

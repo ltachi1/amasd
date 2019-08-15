@@ -36,7 +36,7 @@ func (s *Scrapyd) DaemonStatus() error {
 		err error
 		str string
 	)
-	if str, err = s.send("daemonStatus", core.B{}); err == nil {
+	if str, err = s.send("daemonStatus", core.A{}); err == nil {
 		daemonStatus := core.A{}
 		if err = json.Unmarshal(core.Str2bytes(str), &daemonStatus); err == nil {
 			if status, ok := daemonStatus["status"]; ok && status == "ok" {
@@ -92,7 +92,7 @@ func (s *Scrapyd) AddVersion(project *Project, file *multipart.FileHeader) bool 
 //删除项目
 func (s *Scrapyd) DelProject(projectName string) bool {
 	var error error
-	if str, error := s.send("delProject", core.B{"project": projectName}); error == nil {
+	if str, error := s.send("delProject", core.A{"project": projectName}); error == nil {
 		result := core.A{}
 		if error = json.Unmarshal(core.Str2bytes(str), &result); error == nil {
 			if status, ok := result["status"]; ok && status == "ok" {
@@ -113,7 +113,7 @@ func (s *Scrapyd) ListSpiders(project *Project) (error, []string) {
 		str string
 	)
 	spiders := make([]string, 0)
-	if str, err = s.send("listSpiders", core.B{"project": project.Name, "_version": project.LastVersion}); err == nil {
+	if str, err = s.send("listSpiders", core.A{"project": project.Name, "_version": project.LastVersion}); err == nil {
 		result := core.A{}
 		if err = json.Unmarshal(core.Str2bytes(str), &result); err == nil {
 			if status, ok := result["status"]; ok && status == "ok" {
@@ -133,7 +133,7 @@ func (s *Scrapyd) Schedule(projectName string, version string, spiderName string
 		err error
 		str string
 	)
-	if str, err = s.send("schedule", core.B{"project": projectName, "_version": version, "spider": spiderName}); err == nil {
+	if str, err = s.send("schedule", core.A{"project": projectName, "_version": version, "spider": spiderName}); err == nil {
 		result := core.A{}
 		if err = json.Unmarshal(core.Str2bytes(str), &result); err == nil {
 			if status, ok := result["status"]; ok && status == "ok" {
@@ -150,7 +150,7 @@ func (s *Scrapyd) Cancel(projectName string, jobId string) error {
 		err error
 		str string
 	)
-	if str, err = s.send("cancel", core.B{"project": projectName, "job": jobId}); err == nil {
+	if str, err = s.send("cancel", core.A{"project": projectName, "job": jobId}); err == nil {
 		result := core.A{}
 		if err = json.Unmarshal(core.Str2bytes(str), &result); err == nil {
 			if status, ok := result["status"]; ok && status == "ok" {
@@ -167,7 +167,7 @@ func (s *Scrapyd) ListJobs(projectName string) (error, map[string][]interface{})
 		err error
 		str string
 	)
-	if str, err = s.send("listjobs", core.B{"project": projectName}); err == nil {
+	if str, err = s.send("listjobs", core.A{"project": projectName}); err == nil {
 		result := core.A{}
 		if err = json.Unmarshal(core.Str2bytes(str), &result); err == nil {
 			if status, ok := result["status"]; ok && status == "ok" {
@@ -182,7 +182,7 @@ func (s *Scrapyd) ListJobs(projectName string) (error, map[string][]interface{})
 	return err, map[string][]interface{}{}
 }
 
-func (s *Scrapyd) send(key string, params core.B) (string, error) {
+func (s *Scrapyd) send(key string, params core.A) (string, error) {
 	headers := make(core.B, 0)
 	if s.Auth == ServerAuthOpen {
 		headers["Authorization"] = fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", s.Username, s.Password))))
@@ -192,7 +192,11 @@ func (s *Scrapyd) send(key string, params core.B) (string, error) {
 	if v["method"] == http.MethodPost {
 		return core.NewCurl().SetHeaders(headers).Post(url, params)
 	} else if v["method"] == http.MethodGet {
-		return core.NewCurl().SetHeaders(headers).Get(url, params)
+		b := core.B{}
+		for k, v := range params {
+			b[k] = v.(string)
+		}
+		return core.NewCurl().SetHeaders(headers).Get(url, b)
 	}
 	return "", errors.New("请输入正确url地址")
 }

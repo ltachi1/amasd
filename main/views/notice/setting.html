@@ -1,6 +1,5 @@
 {{define "notice/setting"}}
 {{template "layout/header"}}
-<link href="/assets/vendors/general/summernote/summernote.min.css" rel="stylesheet" type="text/css" />
 <style>
     .modal .form-group .kt-block-inline {width:105px;}
 </style>
@@ -62,12 +61,30 @@
                                 <label class="col-2 col-form-label text-right">通知类型</label>
                                 <div class="col-9">
                                     <div class="kt-checkbox-inline">
-                                        <label class="kt-checkbox" style="width: 150px;">
-                                            <input type="checkbox" name="email" value="enabled" {{if eq .settings.email "enabled"}}checked{{end}}> 邮件通知
-                                            <span></span>
-                                        </label>
-                                        <a href="javascript:;" data-toggle="kt-popover" title="" data-content="发件人：{{.settings.email_sender_address}}<br>收件人：{{.settings.email_addressee}}" data-html="true" data-original-title="邮箱设置"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
-                                        <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_7"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        <div class="kt-margin-b-15">
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="email" value="enabled" {{if eq .settings.email "enabled"}}checked{{end}}> 邮件通知
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" title="" data-content="发件人：{{.settings.email_sender_address}}<br>收件人：{{.settings.email_addressee}}" data-html="true" data-original-title="邮箱设置"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_7"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
+                                        <div class="kt-margin-b-15">
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="dingtalk" value="enabled" {{if eq .settings.dingtalk "enabled"}}checked{{end}}> 钉钉群机器人
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" title="" data-content="{{.settings.dingtalk_webhook}}"  data-original-title="通知地址"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_8"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
+                                        <div>
+                                            <label class="kt-checkbox" style="width: 150px;">
+                                                <input type="checkbox" name="work_weixin" value="enabled" {{if eq .settings.work_weixin "enabled"}}checked{{end}}> 企业微信群机器人
+                                                <span></span>
+                                            </label>
+                                            <a href="javascript:;" data-toggle="kt-popover" title="" data-content="{{.settings.work_weixin_webhook}}"  data-original-title="通知地址"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+                                            <a href="javascript:;" data-toggle="modal" data-target="#kt_modal_9"><i class="fa fa-cog" aria-hidden="true"></i></a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -91,7 +108,7 @@
                             </div>
                             <div class="form-group">
                                 <label>内容</label>
-                                <textarea class="form-control summernote" name="scrapyd_service_content" id="scrapyd_service_content">{{.settings.scrapyd_service_content}}</textarea>
+                                <textarea class="form-control summernote" name="scrapyd_service_content" rows="6" id="scrapyd_service_content">{{.settings.scrapyd_service_content}}</textarea>
                                 <span class="form-text">不超过2000个字符</span>
                                 <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
                                 <span class="form-text"><span class="kt-font-danger kt-block-inline">{host}</span>=>&nbsp;&nbsp;出现异常服务器的host</span>
@@ -120,7 +137,7 @@
                             </div>
                             <div class="form-group">
                                 <label>内容</label>
-                                <textarea class="form-control summernote" name="task_finished_content" id="task_finished_content">{{.settings.task_finished_content}}</textarea>
+                                <textarea class="form-control summernote" name="task_finished_content" rows="6" id="task_finished_content">{{.settings.task_finished_content}}</textarea>
                                 <span class="form-text">不超过2000个字符</span>
                                 <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
                                 <div class="row">
@@ -160,7 +177,7 @@
                             </div>
                             <div class="form-group">
                                 <label>内容</label>
-                                <textarea class="form-control summernote" name="task_error_content" id="task_error_content">{{.settings.task_error_content}}</textarea>
+                                <textarea class="form-control summernote" name="task_error_content" rows="6" id="task_error_content">{{.settings.task_error_content}}</textarea>
                                 <span class="form-text">不超过2000个字符</span>
                                 <span class="form-text">如果内容中出现以下特殊字符,将会被动态的替换成相对应的内容:</span>
                                 <div class="row">
@@ -227,6 +244,47 @@
                     </div>
                 </div>
             </div>
+
+            <div class="modal fade" id="kt_modal_8" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">钉钉机器人设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label>webhook地址</label>
+                                <input type="text" class="form-control" name="dingtalk_webhook" id="dingtalk_webhook"  maxlength="200" value="{{.settings.dingtalk_webhook}}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="kt_modal_9" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">企业微信机器人设置</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group row">
+                                <label>webhook地址</label>
+                                <input type="text" class="form-control" name="work_weixin_webhook" id="work_weixin_webhook"  maxlength="200" value="{{.settings.work_weixin_webhook}}">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
 
     </div>
@@ -236,21 +294,7 @@
 <script src="/assets/vendors/general/jquery-validation/dist/jquery.validate.min.js" type="text/javascript"></script>
 <script src="/assets/vendors/general/jquery-validation/dist/additional-methods.min.js" type="text/javascript"></script>
 <script src="/assets/vendors/general/jquery-form/dist/jquery.form.min.js" type="text/javascript"></script>
-<script src="/assets/vendors/general/summernote/summernote.min.js" type="text/javascript"></script>
-<script src="/assets/vendors/general/summernote/summernote-zh-CN.min.js" type="text/javascript"></script>
 <script>
-    $(function(){
-        $('.summernote').summernote({
-            height: 150,
-            lang: 'zh-CN',
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'underline', 'clear']],
-                ['color', ['color']],
-                ['para', ['ul', 'ol', 'paragraph']],
-            ]
-        });
-    });
     vq.common.submitForm({
         id:'form',
         successInfo:'继续修改',

@@ -69,10 +69,22 @@
                 },
                 saveState: false,
             },
+            rows: {
+                afterTemplate: function(row, obj, datatable) {
+                    KTApp.initTooltip($("#kt-tooltip-" + obj.id));
+                },
+            },
             columns: [
                 {
                     field: 'name',
                     title: '名称',
+                }, {
+                    field: 'desc',
+                    title: '描述',
+                    width: '200',
+                    template:function(row, index, datatable){
+                        return '<span class="one-line kt-block-inline" id="kt-tooltip-'+row.id+'" style="max-width:200px;" data-container="body" data-toggle="kt-tooltip" data-placement="top" data-original-title="'+row.desc+'">'+row.desc+'</span>';
+                    }
                 }, {
                     field: 'last_version',
                     title: '最后版本号'
@@ -91,17 +103,49 @@
                               <i class="fa fa-ellipsis-h"></i>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="javascript:;" onclick="editDesc(` + row.id + `)"><i class="la la-edit"></i> 编辑项目描述</a>
                                 <a class="dropdown-item" href="/project/project/editVersion?id=` + row.id + `"><i class="la la-edit"></i> 更新项目文件</a>
                                 <a class="dropdown-item" href="/project/project/editServers?id=` + row.id + `"><i class="la la-leaf"></i> 更新关联服务器</a>
                             </div>
                         </span>
+                        <div class="kt-hidden" id="desc-`+row.id+`">`+row.desc+`</div>
                         <button data-href="/project/project/del?id=` + row.id + `" data-msg="确定要删除吗?" data-datatable="yes" class="btn btn-sm btn-clean btn-icon btn-icon-md" onclick="vq.common.get(this)" title="删除"><i class="fa fa-trash-alt"></i></button>
                         `;
-
-
                     }
                 }],
         });
     });
+    function editDesc(id){
+        var dia = dialog({
+            title: "编辑项目描述",
+            zIndex: 5,
+            fixed: true,
+            id: "desc-dialog",
+            content: '<textarea placeholder="输入项目描述" style="width:400px;height:100px;" id="project_desc" class="form-control" autocomplete="off" >'+ $("#desc-" + id).html() +'</textarea>',
+            ok: function () {
+                vq.common.block($("[aria-labelledby='title:desc-dialog']"));
+                $.ajax({
+                    url: "/project/project/editDesc",
+                    type: 'post',
+                    dataType: 'json',
+                    data: {id: id, desc: $("#project_desc").val()},
+                    success: function(data) {
+                        vq.common.unblock($("[aria-labelledby='title:desc-dialog']"));
+                        dia.remove();
+                        if(data.code == 0){
+                            datatableObj.reload(false);
+                        }else{
+                            vq.common.error({content:data.msg});
+                        }
+                    },
+                    error: function() {
+                        vq.common.error({content: data.msg});
+                    }
+                });
+                return false;
+            },
+            cancel: true
+        }).showModal();
+    }
 </script>
 {{end}}

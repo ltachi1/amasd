@@ -112,7 +112,6 @@ func NowToDate(format ...string) string {
 	}
 }
 
-
 //日期格式化成时间戳
 func DateToTimestamp(date string) int {
 	loc, _ := time.LoadLocation("Local")
@@ -205,4 +204,24 @@ func SupplementDir(path string) string {
 		path = path + string(os.PathSeparator)
 	}
 	return path
+}
+
+//去除内容的html标签
+func TrimHtml(src string) string {
+	//将HTML标签全转换成小写
+	re, _ := regexp.Compile(`\<[\S\s]+?\>`)
+	src = re.ReplaceAllStringFunc(src, strings.ToLower)
+	//去除STYLE
+	re, _ = regexp.Compile(`\<style[\S\s]+?\</style\>`)
+	src = re.ReplaceAllString(src, "")
+	//去除SCRIPT
+	re, _ = regexp.Compile(`\<script[\S\s]+?\</script\>`)
+	src = re.ReplaceAllString(src, "")
+	//去除所有尖括号内的HTML代码，并换成换行符
+	re, _ = regexp.Compile(`\<[\S\s]+?\>`)
+	src = re.ReplaceAllString(src, "\n")
+	//去除连续的换行符
+	re, _ = regexp.Compile(`\s{2,}`)
+	src = re.ReplaceAllString(src, "\n")
+	return strings.TrimSpace(src)
 }

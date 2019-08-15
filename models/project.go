@@ -14,6 +14,7 @@ type Project struct {
 	Base        core.BaseModel `json:"-" xorm:"-"`
 	Id          int            `json:"id" xorm:"pk autoincr"`
 	Name        string         `json:"name" xorm:"unique" binding:"required"`
+	Desc        string         `json:"desc"`
 	LastVersion string         `json:"last_version"`
 	CreateTime  core.Timestamp `json:"create_time" xorm:"created"`
 	UpdateTime  core.Timestamp `json:"update_time" xorm:"created updated"`
@@ -350,10 +351,10 @@ func (p *Project) GetPageProjects(serverId int, page int, pageSize int) ([]Proje
 	var totalCount int64 = 0
 	if serverId == 0 {
 		totalCount, _ = core.Db.Table("project").Count()
-		core.Db.Limit(pageSize, (page-1)*pageSize).Find(&projects)
+		core.Db.Select("id,name,desc,last_version,create_time,update_time").Limit(pageSize, (page-1)*pageSize).Find(&projects)
 	} else {
 		totalCount, _ = core.Db.Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Count()
-		core.Db.Select("p.*").Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Limit(pageSize, (page-1)*pageSize).Find(&projects)
+		core.Db.Select("p.id,p.name,p.desc,p.last_version,p.create_time,p.update_time").Table("project").Alias("p").Join("INNER", "project_server as ps", "ps.project_id = p.id").Where("ps.server_id = ?", serverId).Limit(pageSize, (page-1)*pageSize).Find(&projects)
 	}
 	return projects, int(totalCount)
 }
@@ -422,4 +423,9 @@ func (p *Project) Del(id int) (bool, string) {
 	}
 
 	return true, "project_del_error"
+}
+
+func (p *Project) Update(id int, data core.A) error {
+	_, error := core.Db.Table(p).ID(id).Update(data)
+	return error
 }

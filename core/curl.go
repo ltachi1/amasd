@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"encoding/json"
 )
 
 // Request构造类
@@ -22,7 +23,7 @@ type Curl struct {
 	headers         B
 	cookies         B
 	queries         B
-	postData        B
+	postData        A
 	postFormData    *bytes.Buffer
 }
 
@@ -82,7 +83,7 @@ func (c *Curl) Get(url string, params B) (string, error) {
 }
 
 // 发起post请求
-func (c *Curl) Post(url string, params B) (string, error) {
+func (c *Curl) Post(url string, params A) (string, error) {
 	c.postData = params
 	return c.execute(url, http.MethodPost)
 }
@@ -149,14 +150,21 @@ func (c *Curl) execute(u string, method string) (string, error) {
 		Timeout: c.timeout,
 	}
 	var reader io.Reader
-	if contentType, _ := c.headers["Content-Type"]; strings.ContainsAny(contentType, "multipart/form-data") {
+	contentType := c.headers["Content-Type"]
+	if strings.Index(contentType, "multipart/form-data") > -1 {
 		reader = c.postFormData
+	} else if strings.Index(contentType, "application/json") > -1 {
+		bytesData, err := json.Marshal(c.postData)
+		if err != nil {
+			return "", errors.New("参数错误")
+		}
+		reader = bytes.NewReader(bytesData)
 	} else {
 		var payload url.Values
 		if c.postData != nil {
 			payload = map[string][]string{}
 			for k, v := range c.postData {
-				payload.Add(k, v)
+				payload.Add(k, v.(string))
 			}
 		}
 		reader = strings.NewReader(payload.Encode())

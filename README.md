@@ -4,6 +4,8 @@
 1. 0配置
 2. 无任何依赖
 3. 可在任意系统运行(如果需要可联系作者进行打包)
+4. 可对scrapyd服务状态、任务运行结束、任务运行异常进行监控，可自由配置
+5. 通知方式有邮件通知、钉钉群机器人通知、企业微信群机器人通知，可自由配置
 
 ### 运行参数
 - -p 监听端口，默认 8000
@@ -46,6 +48,12 @@
 
 - 已完成任务列表
 ![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/task_finished_list.png)
+
+- 通知设置
+![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/notice.png)
+
+- 任务完成通知设置
+![image](https://github.com/ltachi1/scrapyd-admin/raw/master/images/notice_task_finished.png)
 
 ### Scrapy 课程推荐(本人已看完此教程所有视频)
 - 课程内容：Python基础+脚本爬虫+Scrapy框架+实战训练

@@ -19,6 +19,8 @@ func (n *Notice) Setting(c *gin.Context) {
 		tf := strings.Trim(c.DefaultPostForm("task_finished", models.NoticeSettingStatusDisabled), " ")
 		te := strings.Trim(c.DefaultPostForm("task_error", models.NoticeSettingStatusDisabled), " ")
 		e := strings.Trim(c.DefaultPostForm("email", models.NoticeSettingStatusDisabled), " ")
+		d := strings.Trim(c.DefaultPostForm("dingtalk", models.NoticeSettingStatusDisabled), " ")
+		ww := strings.Trim(c.DefaultPostForm("work_weixin", models.NoticeSettingStatusDisabled), " ")
 		sst := strings.Trim(c.DefaultPostForm("scrapyd_service_title", ""), " ")
 		ssc := strings.Trim(c.DefaultPostForm("scrapyd_service_content", ""), " ")
 		tft := strings.Trim(c.DefaultPostForm("task_finished_title", ""), " ")
@@ -31,6 +33,8 @@ func (n *Notice) Setting(c *gin.Context) {
 		esp2 := strings.Trim(c.DefaultPostForm("email_sender_password", ""), " ")
 		es2 := strings.Trim(c.DefaultPostForm("email_sender", ""), " ")
 		ea := strings.Trim(c.DefaultPostForm("email_addressee", ""), " ")
+		dw := strings.Trim(c.DefaultPostForm("dingtalk_webhook", ""), " ")
+		www := strings.Trim(c.DefaultPostForm("work_weixin_webhook", ""), " ")
 		if ss == models.NoticeSettingStatusEnabled && (sst == "" || ssc == "") {
 			n.Fail(c, "system_notice_scrapyd_error")
 			return
@@ -95,12 +99,38 @@ func (n *Notice) Setting(c *gin.Context) {
 			n.Fail(c, "extra_long_error", "收件人邮箱地址", "50")
 			return
 		}
+		if d == models.NoticeSettingStatusEnabled && dw == "" {
+			n.Fail(c, "system_notice_dingtalk_error")
+			return
+		}
+		if len(dw) > 200 {
+			n.Fail(c, "extra_long_error", "钉钉webhook地址", "200")
+			return
+		}
+		if !core.IsUrl(dw) {
+			n.Fail(c, "system_notice_webhook_error")
+			return
+		}
+		if ww == models.NoticeSettingStatusEnabled && www == "" {
+			n.Fail(c, "system_notice_work_weixin_error")
+			return
+		}
+		if len(www) > 200 {
+			n.Fail(c, "extra_long_error", "企业微信webhook地址", "200")
+			return
+		}
+		if !core.IsUrl(www) {
+			n.Fail(c, "system_notice_webhook_error")
+			return
+		}
 
 		fields := []core.B{
 			{"name": "\"scrapyd_service\"", "value": ss},
 			{"name": "\"task_finished\"", "value": tf},
 			{"name": "\"task_error\"", "value": te},
 			{"name": "\"email\"", "value": e},
+			{"name": "\"dingtalk\"", "value": d},
+			{"name": "\"work_weixin\"", "value": ww},
 			{"name": "\"scrapyd_service_title\"", "value": sst},
 			{"name": "\"scrapyd_service_content\"", "value": ssc},
 			{"name": "\"task_finished_title\"", "value": tft},
@@ -113,6 +143,8 @@ func (n *Notice) Setting(c *gin.Context) {
 			{"name": "\"email_sender_password\"", "value": esp2},
 			{"name": "\"email_sender\"", "value": es2},
 			{"name": "\"email_addressee\"", "value": ea},
+			{"name": "\"dingtalk_webhook\"", "value": dw},
+			{"name": "\"work_weixin_webhook\"", "value": www},
 		}
 		if new(models.NoticeSetting).Update(fields) {
 			n.Success(c, nil)

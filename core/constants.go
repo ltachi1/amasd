@@ -90,6 +90,9 @@ var (
 		"system_notice_email_port_error":      "请输入正确的发件服务器端口",
 		"system_notice_email_address_error":   "请输入正确的发件人邮箱地址",
 		"system_notice_email_addressee_error": "请输入正确的收件人邮箱地址",
+		"system_notice_dingtalk_error":        "请输入钉钉群机器人webhook地址",
+		"system_notice_work_weixin_error":     "请输入企业微信群机器人webhook地址",
+		"system_notice_webhook_error":         "请输入正确的的webhook地址",
 	}
 	//运行文件所在路径
 	RootPath = ""

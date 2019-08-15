@@ -110,9 +110,9 @@ func (s *Server) Edit(c *gin.Context) {
 			return
 		}
 
-		data := core.B{
+		data := core.A{
 			"alias":    alias,
-			"auth":     strconv.Itoa(auth),
+			"auth":     auth,
 			"username": username,
 			"password": password,
 		}

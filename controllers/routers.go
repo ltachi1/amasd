@@ -42,6 +42,7 @@ func Register(e *gin.Engine) {
 	//项目相关
 	postAndGet(e, "/project/project/index", new(Project).Index)
 	postAndGet(e, "/project/project/add", new(Project).Add)
+	postAndGet(e, "/project/project/editDesc", new(Project).EditDesc)
 	postAndGet(e, "/project/project/editVersion", new(Project).EditVersion)
 	postAndGet(e, "/project/project/editServers", new(Project).EditServers)
 	e.GET("/project/project/del", new(Project).Del)

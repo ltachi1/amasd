@@ -4,8 +4,6 @@ import (
 	"scrapyd-admin/core"
 	"github.com/ltachi1/logrus"
 	"fmt"
-	"time"
-	"strconv"
 )
 
 type Server struct {
@@ -96,8 +94,7 @@ func (s *Server) Get(id int) bool {
 	return ok
 }
 
-func (s *Server) Update(id int, data core.B) error {
-	data["update_time"] = strconv.Itoa(int(time.Now().Unix()))
+func (s *Server) Update(id int, data core.A) error {
 	_, error := core.Db.Table(s).ID(id).Update(data)
 	return error
 }

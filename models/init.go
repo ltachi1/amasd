@@ -35,15 +35,15 @@ func InitTask() {
 }
 
 func InitTables() error {
-	versions := 2
 	upgradeFuncs := []func(*xorm.Session) error{
 		upgrade100,
 		upgrade200,
+		upgrade210,
 	}
 	session := core.Db.NewSession()
 	defer session.Close()
 	session.Begin()
-	for i := 0; i < versions; i++ {
+	for i := 0; i < len(upgradeFuncs); i++ {
 		if err := upgradeFuncs[i](session); err != nil {
 			session.Rollback()
 			return err
@@ -124,6 +124,21 @@ INSERT INTO "notice_setting" VALUES (14, 'email_addressee', '', '收件人邮箱
 INSERT INTO "notice_setting" VALUES (15, 'email_sender', '', '发件人别名');
 INSERT INTO "notice_setting" VALUES (16, 'email_smtp_port', '', '发件箱服务器端口');
 INSERT INTO "menu" VALUES (18, '通知设置', 1, 'notice', 'notice', 'setting', '', 'fa fa-bell', 1, 0);
+`)
+	return err
+}
+
+//升级2.1.0数据库
+func upgrade210(session *xorm.Session) error {
+	if count, _ := session.Where("name = ?", "dingtalk").Table("notice_setting").Count(); count > 0 {
+		return nil
+	}
+	_, err := session.Exec(`
+INSERT INTO "notice_setting" (name,value,desc) VALUES ('dingtalk', 'disabled', '是否开启钉钉通知');
+INSERT INTO "notice_setting" (name,value,desc) VALUES ('dingtalk_webhook', '', '钉钉通知webhook地址');
+INSERT INTO "notice_setting" (name,value,desc) VALUES ('work_weixin', 'disabled', '是否开启企业微信通知');
+INSERT INTO "notice_setting" (name,value,desc) VALUES ('work_weixin_webhook', '', '企业微信通知webhook通知');
+ALTER TABLE "project" ADD COLUMN "desc" VARCHAR (1000) NOT NULL DEFAULT '';
 `)
 	return err
 }

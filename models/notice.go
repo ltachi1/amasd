@@ -7,21 +7,16 @@ import (
 	"strconv"
 	"github.com/ltachi1/logrus"
 	"strings"
+	"encoding/json"
 )
 
 type Notice interface {
-	send(b core.B)
+	send(title string, content string)
 }
 
-type EmailNotice struct {
-	Smtp           string
-	SenderEmail    string
-	Sender         string
-	Password       string
-	AddresseeEmail string
-}
+type EmailNotice struct{}
 
-func (e *EmailNotice) send(b core.B) {
+func (e *EmailNotice) send(title string, content string) {
 	//校验邮箱相关配置
 	if !core.IsEmail(core.NoticeSettings["email_sender_address"]) ||
 		!core.IsEmail(core.NoticeSettings["email_addressee"]) ||
@@ -44,19 +39,79 @@ func (e *EmailNotice) send(b core.B) {
 		m.SetHeader("From", m.FormatAddress(core.NoticeSettings["email_sender_address"], core.NoticeSettings["email_sender"]))
 	}
 	m.SetHeader("To", core.NoticeSettings["email_addressee"])
-	m.SetHeader("Subject", b["title"])
-	m.SetBody("text/html", b["content"])
+	m.SetHeader("Subject", title)
+	m.SetBody("text/html", content)
 	d := gomail.NewDialer(core.NoticeSettings["email_smtp"], port, core.NoticeSettings["email_sender_address"], core.NoticeSettings["email_sender_password"])
 	if err := d.DialAndSend(m); err != nil {
-		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": b["title"], "content": b["content"]}, fmt.Sprintf("邮件发送失败:%s", err))
+		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("邮件发送失败:%s", err))
+	}
+}
+
+type DingtalkNotice struct {
+	Errcode int
+	Errmsg  string
+}
+
+func (d *DingtalkNotice) send(title string, content string) {
+	if core.NoticeSettings["dingtalk_webhook"] == "" || !core.IsUrl(core.NoticeSettings["dingtalk_webhook"]) {
+		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{}, "钉钉通知失败,配置错误")
+		return
+	}
+	param := core.A{"msgtype": "text", "text": core.B{"content": fmt.Sprintf("%s\n%s", title, content)}}
+	if result, err := core.NewCurl().SetHeaders(core.B{"Content-Type": "application/json"}).Post(core.NoticeSettings["dingtalk_webhook"], param); err != nil {
+		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("钉钉通知失败:%s", err))
+	} else {
+		if len(result) > 0 {
+			if err := json.Unmarshal([]byte(result), &d); err != nil {
+				core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("钉钉通知返回结果解析失败:%s", err))
+				return
+			}
+			if d.Errcode != 0 {
+				core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("钉钉通知失败:%s", d.Errmsg))
+			}
+		}
+	}
+}
+
+type WorkWeixinNotice struct {
+	Errcode int
+	Errmsg  string
+}
+
+func (w *WorkWeixinNotice) send(title string, content string) {
+	if core.NoticeSettings["work_weixin_webhook"] == "" || !core.IsUrl(core.NoticeSettings["work_weixin_webhook"]) {
+		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{}, "企业微信通知失败,配置错误")
+		return
+	}
+	param := core.A{"msgtype": "text", "text": core.B{"content": fmt.Sprintf("%s\n%s", title, content)}}
+	if result, err := core.NewCurl().SetHeaders(core.B{"Content-Type": "application/json"}).Post(core.NoticeSettings["work_weixin_webhook"], param); err != nil {
+		core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("企业微信通知失败:%s", err))
+	} else {
+		if len(result) > 0 {
+			if err := json.Unmarshal([]byte(result), &w); err != nil {
+				core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("企业微信通知返回结果解析失败:%s", err))
+				return
+			}
+			if w.Errcode != 0 {
+				core.WriteLog(core.LogTypeSystem, logrus.ErrorLevel, logrus.Fields{"title": title, "content": content}, fmt.Sprintf("企业微信通知失败:%s", w.Errmsg))
+			}
+		}
 	}
 }
 
 //通知类型调度
-func noticeTypeDispatch(b core.B) {
+func noticeTypeDispatch(title string, content string) {
 	if core.NoticeSettings["email"] == NoticeSettingStatusEnabled {
 		//开启邮件通知
-		send(new(EmailNotice), b)
+		send(new(EmailNotice), title, content)
+	}
+	if core.NoticeSettings["dingtalk"] == NoticeSettingStatusEnabled {
+		//开启钉钉通知
+		send(new(DingtalkNotice), title, content)
+	}
+	if core.NoticeSettings["work_weixin"] == NoticeSettingStatusEnabled {
+		//开启企业微信通知
+		send(new(WorkWeixinNotice), title, content)
 	}
 	//后续增加其他通知类型
 }
@@ -82,9 +137,9 @@ func noticeOptionsDispatch(option string, b core.B) {
 			content = strings.Replace(content, w, b[strings.Trim(w, "{}")], -1)
 		}
 	}
-	noticeTypeDispatch(core.B{"title": title, "content": content})
+	noticeTypeDispatch(title, content)
 }
 
-func send(n Notice, b core.B) {
-	n.send(b)
+func send(n Notice, title string, content string) {
+	n.send(title, content)
 }
