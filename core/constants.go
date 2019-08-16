@@ -47,6 +47,7 @@ var (
 		"server_username_error":             "请输入服务器用户名和密码",
 		"server_cutback_task_running_error": "所减少的服务器有正在运行的爬虫或者定时任务，请先删除或者停止",
 		"server_del_task_running_error":     "此服务器有正在运行的爬虫或者定时任务，请先删除或者停止",
+		"server_monitor_address_error":      "请输入监控地址",
 		//项目相关
 		"project_name_repeat":               "项目名称重复，请重新输入",
 		"project_version_repeat":            "项目版本号重复，请重新输入",

@@ -51,11 +51,11 @@
                                     <label>服务器验证</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="auth" value="1" {{if eq .info.Auth 1}}checked{{end}} onclick="relationServer('no')"> 否
+                                            <input type="radio" name="auth" value="1" {{if eq .info.Auth 1}}checked{{end}} onclick="relationServer('no', 'auth-span')"> 否
                                             <span></span>
                                         </label>
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="auth" value="2" {{if eq .info.Auth 2}}checked{{end}} onclick="relationServer('yes')"> 是
+                                            <input type="radio" name="auth" value="2" {{if eq .info.Auth 2}}checked{{end}} onclick="relationServer('yes', 'auth-span')"> 是
                                             <span></span>
                                         </label>
                                     </div>
@@ -72,6 +72,39 @@
                                     <label>密码</label>
                                     <input type="password" class="form-control vq-max-length" placeholder="输入服务器密码" name="password" maxlength="20" value="{{.info.Password}}" autocomplete="new-password">
                                     <span class="form-text">不超过20个字符，没有用户则留空</span>
+                                </div>
+                            </div>
+                            <div class="kt-separator kt-separator--border-dashed"></div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <label>服务器监控</label>
+                                    <div class="kt-radio-inline">
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="monitor" value="disabled" {{if eq .info.Monitor "disabled"}}checked{{end}} onclick="relationServer('no', 'monitor-span')"> 否
+                                            <span></span>
+                                        </label>
+                                        <label class="kt-radio kt-radio--brand">
+                                            <input type="radio" name="monitor" value="enabled" {{if eq .info.Monitor "enabled"}}checked{{end}} onclick="relationServer('yes', 'monitor-span')"> 是
+                                            <span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row monitor-span {{if eq .info.Monitor "disabled"}}kt-hidden{{end}}">
+                                <div class="col-sm-4">
+                                    <label>监控地址</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址" name="monitor_address" maxlength="50" value="{{.info.MonitorAddress}}" autocomplete="off">
+                                    <span class="form-text text-muted">不超过50个字符</span>
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>监控地址用户名</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址用户名" name="monitor_username" maxlength="20" value="{{.info.MonitorUsername}}" autocomplete="off">
+                                    <span class="form-text text-muted">不超过20个字符</span>
+                                </div>
+                                <div class="col-sm-4">
+                                    <label>监控地址密码</label>
+                                    <input type="password" class="form-control vq-max-length" placeholder="输入监控地址密码" name="monitor_password" maxlength="20" value="{{.info.MonitorPassword}}" autocomplete="new-password">
+                                    <span class="form-text text-muted">不超过20个字符</span>
                                 </div>
                             </div>
                         </div>
@@ -98,11 +131,11 @@
         rules:{},
         messages:{}
     });
-    function relationServer(value){
+    function relationServer(value, cla){
         if(value == "yes"){
-            $(".auth-span").removeClass("kt-hidden")
+            $("." + cla).removeClass("kt-hidden")
         }else{
-            $(".auth-span").addClass("kt-hidden")
+            $("." + cla).addClass("kt-hidden")
         }
     }
 </script>

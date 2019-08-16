@@ -86,6 +86,16 @@
                         }
                     }
                 }, {
+                    field: 'monitor',
+                    title: '监控状态',
+                    template: function(row, index, datatable){
+                        if (row.monitor == "enabled"){
+                            return `<span class="kt-badge kt-badge--success kt-badge--inline">开启</span>`;
+                        }else if (row.status == "disabled"){
+                            return `<span class="kt-badge kt-badge--warning kt-badge--inline">关闭</span>`;
+                        }
+                    }
+                }, {
                     field: 'update_time',
                     title: '更新时间',
                 }, {

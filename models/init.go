@@ -30,6 +30,11 @@ func InitTask() {
 		new(Task).DetectionStatus()
 	}, "DetectionTaskStatus")
 
+	//定时监控服务器性能指标
+	core.Cron.AddFunc("*/30 * * * *", func() {
+		new(Server).ServerMonitor()
+	}, "ServerMonitor")
+
 	//初始化已有的计划任务
 	new(SchedulesTask).InitSchedulesToCron()
 }
@@ -39,6 +44,7 @@ func InitTables() error {
 		upgrade100,
 		upgrade200,
 		upgrade210,
+		upgrade220,
 	}
 	session := core.Db.NewSession()
 	defer session.Close()
@@ -139,6 +145,34 @@ INSERT INTO "notice_setting" (name,value,desc) VALUES ('dingtalk_webhook', '', '
 INSERT INTO "notice_setting" (name,value,desc) VALUES ('work_weixin', 'disabled', '是否开启企业微信通知');
 INSERT INTO "notice_setting" (name,value,desc) VALUES ('work_weixin_webhook', '', '企业微信通知webhook通知');
 ALTER TABLE "project" ADD COLUMN "desc" VARCHAR (1000) NOT NULL DEFAULT '';
+`)
+	return err
+}
+
+//升级2.2.0数据库
+func upgrade220(session *xorm.Session) error {
+	exist, err := session.IsTableExist("server_monitor")
+	if err != nil {
+		errors.New("数据库表创建失败")
+	}
+	if exist {
+		return nil
+	}
+	_, err = session.Exec(`
+INSERT INTO "menu" VALUES (19, '实时监控', 15, 'server', 'server', 'monitor', '', 'fa fa-chart-line', 1, 0);
+CREATE TABLE "server_monitor" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "server_id" INTEGER NOT NULL DEFAULT 0,
+  "mem_total" INTEGER NOT NULL DEFAULT 0,
+  "mem_available" INTEGER NOT NULL,
+  "mem_used_percent" INTEGER NOT NULL DEFAULT 0,
+  "cpu_percent" INTEGER NOT NULL DEFAULT 0,
+  "create_time" INT (10) NOT NULL DEFAULT (0)
+);
+ALTER TABLE "server" ADD COLUMN "monitor" VARCHAR(20) NOT NULL DEFAULT 'disabled';
+ALTER TABLE "server" ADD COLUMN "monitor_address" VARCHAR(100) NOT NULL DEFAULT '';
+ALTER TABLE "server" ADD COLUMN "monitor_username" VARCHAR(50) NOT NULL DEFAULT '';
+ALTER TABLE "server" ADD COLUMN "monitor_password" VARCHAR(50) NOT NULL DEFAULT '';
 `)
 	return err
 }

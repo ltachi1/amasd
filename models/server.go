@@ -4,26 +4,34 @@ import (
 	"scrapyd-admin/core"
 	"github.com/ltachi1/logrus"
 	"fmt"
+	"encoding/json"
+	"time"
 )
 
 type Server struct {
-	Base       core.BaseModel `json:"-" xorm:"-"`
-	Id         int            `json:"id" xorm:"pk autoincr"`
-	Alias      string         `json:"alias"`
-	Host       string         `json:"host" binding:"required"`
-	Username   string         `json:"-"`
-	Password   string         `json:"-"`
-	Auth       uint8          `json:"auth"`
-	Status     uint8          `json:"status"`
-	CreateTime core.Timestamp `json:"create_time" xorm:"created"`
-	UpdateTime core.Timestamp `json:"update_time" xorm:"created updated"`
+	Base            core.BaseModel `json:"-" xorm:"-"`
+	Id              int            `json:"id" xorm:"pk autoincr"`
+	Alias           string         `json:"alias"`
+	Host            string         `json:"host" binding:"required"`
+	Username        string         `json:"-"`
+	Password        string         `json:"-"`
+	Auth            uint8          `json:"auth"`
+	Status          uint8          `json:"status"`
+	Monitor         string         `json:"monitor"`
+	MonitorAddress  string         `json:"monitor_address"`
+	MonitorUsername string         `json:"monitor_username"`
+	MonitorPassword string         `json:"monitor_password"`
+	CreateTime      core.Timestamp `json:"create_time" xorm:"created"`
+	UpdateTime      core.Timestamp `json:"update_time" xorm:"created updated"`
 }
 
 var (
-	ServerStatusNormal uint8 = 1 //服务器状态正常
-	ServerStatusFault  uint8 = 2 //服务器状态故障
-	ServerAuthClose    uint8 = 1 //服务器验证关闭
-	ServerAuthOpen     uint8 = 2 //服务器验证开启
+	ServerStatusNormal    uint8 = 1          //服务器状态正常
+	ServerStatusFault     uint8 = 2          //服务器状态故障
+	ServerAuthClose       uint8 = 1          //服务器验证关闭
+	ServerAuthOpen        uint8 = 2          //服务器验证开启
+	ServerMonitorDisabled       = "disabled" //关闭服务器监控
+	ServerMonitorEnabled        = "enabled"  //开启服务器监控
 )
 
 //添加服务器
@@ -165,6 +173,37 @@ func (s *Server) DetectionStatus() {
 					if _, error := core.Db.Id(server.Id).Update(&Server{Status: ServerStatusFault}); error != nil {
 						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务状态更新失败:%s", error))
 					}
+				}
+			}
+		}(server)
+	}
+}
+
+//监控服务器状态
+func (s *Server) ServerMonitor() {
+	s.Monitor = ServerMonitorEnabled
+	serverList := s.Find()
+	time := time.Now().Unix()
+	for _, server := range serverList {
+		go func(server Server) {
+			result, err := core.NewCurl().Get(core.CompletionUrl(server.MonitorAddress)+"/status", core.B{})
+			if err == nil {
+				str := core.A{}
+				if err = json.Unmarshal(core.Str2bytes(result), &str); err == nil && str["error_code"].(float64) == 0 {
+					data := str["data"].(interface{}).(map[string]interface{})
+					cpu := data["cpu"].(map[string]interface{})
+					mem := data["mem"].(map[string]interface{})
+
+					serverMonitor := ServerMonitor{
+						ServerId:       server.Id,
+						MemTotal:       int64(mem["total"].(float64)),
+						MemAvailable:   int64(mem["available"].(float64)),
+						MemUsedPercent: int(mem["used_percent"].(float64)),
+						CpuPercent:     int(cpu["percent"].(float64)),
+						CreateTime:     core.Timestamp(time),
+					}
+					serverMonitor.InsertOne()
+					serverMonitor.DelAnHourAgo()
 				}
 			}
 		}(server)

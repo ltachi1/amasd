@@ -7,6 +7,7 @@ import (
 	"scrapyd-admin/models"
 	"strconv"
 	"unicode/utf8"
+	"time"
 )
 
 type Server struct {
@@ -63,6 +64,23 @@ func (s *Server) Add(c *gin.Context) {
 				s.Fail(c, "extra_long_error", "密码", "20")
 				return
 			}
+			if server.Monitor == models.ServerMonitorEnabled && server.MonitorAddress == "" {
+				s.Fail(c, "server_monitor_address_error")
+				return
+			}
+			if len(server.MonitorAddress) > 50 {
+				s.Fail(c, "extra_long_error", "监控地址", "50")
+				return
+			}
+			if len(server.MonitorUsername) > 20 {
+				s.Fail(c, "extra_long_error", "监控地址用户名", "20")
+				return
+			}
+			if len(server.MonitorPassword) > 20 {
+				s.Fail(c, "extra_long_error", "监控地址密码", "20")
+				return
+			}
+
 			if ok, error := server.InsertOne(); !ok {
 				s.Fail(c, error)
 				return
@@ -86,6 +104,10 @@ func (s *Server) Edit(c *gin.Context) {
 		auth, _ := strconv.Atoi(c.DefaultPostForm("auth", "1"))
 		username := c.DefaultPostForm("username", "")
 		password := c.DefaultPostForm("password", "")
+		monitor := c.DefaultPostForm("monitor", models.ServerMonitorDisabled)
+		monitorAddress := c.DefaultPostForm("monitor_address", "")
+		monitorUsername := c.DefaultPostForm("monitor_username", "")
+		monitorPassword := c.DefaultPostForm("monitor_password", "")
 		if id <= 0 {
 			s.Fail(c, "parameter_error")
 			return
@@ -109,12 +131,32 @@ func (s *Server) Edit(c *gin.Context) {
 			s.Fail(c, "extra_long_error", "密码", "20")
 			return
 		}
+		if monitor == models.ServerMonitorEnabled && monitorAddress == "" {
+			s.Fail(c, "server_monitor_address_error")
+			return
+		}
+		if len(monitorAddress) > 50 {
+			s.Fail(c, "extra_long_error", "监控地址", "50")
+			return
+		}
+		if len(monitorUsername) > 20 {
+			s.Fail(c, "extra_long_error", "监控地址用户名", "20")
+			return
+		}
+		if len(monitorPassword) > 20 {
+			s.Fail(c, "extra_long_error", "监控地址密码", "20")
+			return
+		}
 
 		data := core.A{
-			"alias":    alias,
-			"auth":     auth,
-			"username": username,
-			"password": password,
+			"alias":            alias,
+			"auth":             auth,
+			"username":         username,
+			"password":         password,
+			"monitor":          monitor,
+			"monitor_address":  monitorAddress,
+			"monitor_username": monitorUsername,
+			"monitor_password": monitorPassword,
 		}
 
 		if new(models.Server).Update(id, data) != nil {
@@ -144,4 +186,25 @@ func (s *Server) Del(c *gin.Context) {
 		}
 		s.Success(c, nil)
 	}
+}
+
+func (s *Server) Monitor(c *gin.Context) {
+	if core.IsAjax(c) {
+		lastTime, _ := strconv.Atoi(c.DefaultQuery("last_time", "0"))
+		items := new(models.ServerMonitor).FindByLastTime(lastTime)
+		nextTime := 0
+		if len(items) > 0 {
+			//nextTime = int(items[len(items) - 1 ]["time"].(core.Timestamp))
+			nextTime = int(time.Now().Unix())
+		} else {
+			nextTime = lastTime
+		}
+		s.Success(c, core.A{
+			"items":     new(models.ServerMonitor).FindByLastTime(lastTime),
+			"next_time": nextTime,
+		})
+	} else {
+		c.HTML(http.StatusOK, "server/monitor", gin.H{})
+	}
+
 }

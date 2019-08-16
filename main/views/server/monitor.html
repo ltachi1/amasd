@@ -1,0 +1,170 @@
+{{define "server/monitor"}}
+{{template "layout/header"}}
+<div class="kt-grid__item kt-grid__item--fluid kt-grid kt-grid--hor">
+
+    <!-- begin:: Subheader -->
+    <div class="kt-subheader   kt-grid__item" id="kt_subheader">
+        <div class="kt-subheader__main">
+            <h3 class="kt-subheader__title">服务器管理</h3>
+            <span class="kt-subheader__separator kt-subheader__separator--v"></span>
+            <span class="kt-subheader__desc">实时监控</span>
+        </div>
+    </div>
+
+    <!-- end:: Subheader -->
+
+    <!-- begin:: Content -->
+    <div class="kt-content" id="kt_content">
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        CPU使用率(%)
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div id="echarts-cpu" style="height:300px;width: 100%"></div>
+            </div>
+        </div>
+        <div class="kt-portlet kt-portlet--mobile">
+            <div class="kt-portlet__head kt-portlet__head--lg">
+                <div class="kt-portlet__head-label">
+                    <h3 class="kt-portlet__head-title">
+                        内存使用率(%)
+                    </h3>
+                </div>
+            </div>
+            <div class="kt-portlet__body">
+                <div id="echarts-mem" style="height:300px;width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- end:: Content -->
+</div>
+{{template "layout/footer"}}
+<script src="/assets/vendors/general/echarts/echarts.min.js" type="text/javascript"></script>
+<script src="/assets/vendors/general/echarts/macarons.js" type="text/javascript"></script>
+<script>
+    var cpuData = [];
+    var memData = [];
+    var lastTime = 0;
+    var cpuChart = echarts.init(document.getElementById('echarts-cpu'),'macarons');
+    var memChart = echarts.init(document.getElementById('echarts-mem'),'macarons');
+    $(function(){
+        // 指定图表的配置项和数据
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    animation: false
+                }
+            },
+            xAxis: {
+                type: 'time',
+                splitLine: {
+                    show: false
+                }
+            },
+            yAxis: {
+                type: 'value',
+                boundaryGap: [0, '100%'],
+                splitLine: {
+                    show: true
+                }
+            },
+            grid: {
+                left: '0%',
+                right: '3%',
+                bottom: '0%',
+                containLabel: true
+            },
+            series: [
+                {
+                    name:'127.0.0.1',
+                    type: 'line',
+                    showSymbol: false,
+                    hoverAnimation: false,
+                }
+            ]
+        };
+        cpuChart.setOption(option);
+        memChart.setOption(option);
+        getData();
+        setInterval("getData()", 30000);
+    });
+    function getData(){
+        var servers = [];
+        $.ajax({
+            url: '/server/server/monitor',
+            type: 'get',
+            dataType: 'json',
+            data: {last_time: lastTime},
+            success: function (result) {
+                if (result.code == 0) {
+                    var items = result.data.items;
+                    var tempCpuData = [];
+                    var tempMemData = [];
+                    for (var i = 0; i < items.length; i++){
+                        servers.push(items[i].name);
+                        var timeline = items[i].timeline;
+                        var currentCpuData = [];
+                        var currentMemData = [];
+                        //获取当前服务器之前的cpu数据
+                        for (var n = 0; n < cpuData.length; n++){
+                            if (cpuData[n].name == items[i].name){
+                                currentCpuData = cpuData[n].data;
+                                currentMemData = memData[n].data;
+                            }
+                        }
+                        for (var j = 0; j < timeline.length; j++){
+                            if(currentCpuData.length > 200) {
+                                currentCpuData.shift();
+                            }
+                            currentCpuData.push({
+                                value: [timeline[j].time, timeline[j].cpu_percent]
+                            });
+                            if(currentMemData.length > 200) {
+                                currentMemData.shift();
+                            }
+                            currentMemData.push({
+                                value: [timeline[j].time, timeline[j].mem_used_percent]
+                            });
+                        }
+                        tempCpuData.push({
+                            name: items[i].name,
+                            data: currentCpuData,
+                            type: 'line',
+                            showSymbol: false,
+                            hoverAnimation: false,
+                        });
+                        tempMemData.push({
+                            name: items[i].name,
+                            data: currentMemData,
+                            type: 'line',
+                            showSymbol: false,
+                            hoverAnimation: false,
+                        });
+                    }
+                    cpuData = tempCpuData;
+                    memData = tempMemData;
+                    cpuChart.setOption({
+                        legend: {
+                            data: servers
+                        },
+                        series: cpuData
+                    });
+                    memChart.setOption({
+                        legend: {
+                            data: servers
+                        },
+                        series: memData
+                    });
+                    lastTime = result.data.next_time
+                }
+            }
+        });
+    }
+</script>
+{{end}}
