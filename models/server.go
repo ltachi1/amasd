@@ -17,6 +17,7 @@ type Server struct {
 	Password        string         `json:"-"`
 	Auth            uint8          `json:"auth"`
 	Status          uint8          `json:"status"`
+	//ClientStatus    uint8          `json:"client_status"`
 	Monitor         string         `json:"monitor"`
 	MonitorAddress  string         `json:"monitor_address"`
 	MonitorUsername string         `json:"monitor_username"`
@@ -193,14 +194,21 @@ func (s *Server) ServerMonitor() {
 					data := str["data"].(interface{}).(map[string]interface{})
 					cpu := data["cpu"].(map[string]interface{})
 					mem := data["mem"].(map[string]interface{})
-
+					net := data["net"].(map[string]interface{})
 					serverMonitor := ServerMonitor{
-						ServerId:       server.Id,
-						MemTotal:       int64(mem["total"].(float64)),
-						MemAvailable:   int64(mem["available"].(float64)),
-						MemUsedPercent: int(mem["used_percent"].(float64)),
-						CpuPercent:     int(cpu["percent"].(float64)),
-						CreateTime:     core.Timestamp(time),
+						ServerId:        server.Id,
+						MemTotal:        int64(mem["total"].(float64)),
+						MemAvailable:    int64(mem["available"].(float64)),
+						MemUsedPercent:  int(mem["used_percent"].(float64)),
+						CpuPercent:      cpu["percent"].(string),
+						CpuCoreCount:    int(cpu["core_count"].(float64)),
+						CpuLoad1:        cpu["load1"].(string),
+						CpuLoad5:        cpu["load5"].(string),
+						CpuLoad15:       cpu["load15"].(string),
+						ProcessCount:    int(data["process_count"].(float64)),
+						NetSendSpeed:    int(net["send_speed"].(float64)),
+						NetReceiveSpeed: int(net["receive_speed"].(float64)),
+						CreateTime:      core.Timestamp(time),
 					}
 					serverMonitor.InsertOne()
 					serverMonitor.DelAnHourAgo()

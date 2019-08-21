@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"unicode/utf8"
 	"time"
+	"strings"
 )
 
 type Server struct {
@@ -189,6 +190,52 @@ func (s *Server) Del(c *gin.Context) {
 }
 
 func (s *Server) Monitor(c *gin.Context) {
+	if core.IsAjax(c) {
+		ids := c.DefaultQuery("ids", "")
+		if len(ids) == 0 {
+			s.Fail(c, "parameter_error")
+			return
+		}
+		items, _ := new(models.ServerMonitor).OverviewByIds(strings.Split(ids, ","))
+		s.Success(c, core.A{
+			"items": items,
+		})
+	} else {
+		//获取所有正在监控的服务器
+		server := models.Server{
+			Monitor: models.ServerMonitorEnabled,
+		}
+
+		c.HTML(http.StatusOK, "server/monitor", gin.H{
+			"servers": server.Find(),
+		})
+	}
+
+}
+
+func (s *Server) MonitorDetail(c *gin.Context) {
+	if core.IsAjax(c) {
+		lastTime, _ := strconv.Atoi(c.DefaultQuery("last_time", "0"))
+		items := new(models.ServerMonitor).FindByLastTime(lastTime)
+		nextTime := 0
+		if len(items) > 0 {
+			//nextTime = int(items[len(items) - 1 ]["time"].(core.Timestamp))
+			nextTime = int(time.Now().Unix())
+		} else {
+			nextTime = lastTime
+		}
+		s.Success(c, core.A{
+			"items":     new(models.ServerMonitor).FindByLastTime(lastTime),
+			"next_time": nextTime,
+		})
+	} else {
+		c.HTML(http.StatusOK, "server/monitor", gin.H{})
+	}
+
+}
+
+//查询服务器客户端状态
+func (s *Server) clientStatus(c *gin.Context) {
 	if core.IsAjax(c) {
 		lastTime, _ := strconv.Atoi(c.DefaultQuery("last_time", "0"))
 		items := new(models.ServerMonitor).FindByLastTime(lastTime)
