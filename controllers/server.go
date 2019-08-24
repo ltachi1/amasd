@@ -215,8 +215,13 @@ func (s *Server) Monitor(c *gin.Context) {
 
 func (s *Server) MonitorDetail(c *gin.Context) {
 	if core.IsAjax(c) {
+		serverId, _ := strconv.Atoi(c.DefaultQuery("server_id", "0"))
 		lastTime, _ := strconv.Atoi(c.DefaultQuery("last_time", "0"))
-		items := new(models.ServerMonitor).FindByLastTime(lastTime)
+		if serverId <= 0 {
+			s.Fail(c, "parameter_error")
+			return
+		}
+		items := new(models.ServerMonitor).FindByLastTime(serverId, lastTime)
 		nextTime := 0
 		if len(items) > 0 {
 			//nextTime = int(items[len(items) - 1 ]["time"].(core.Timestamp))
@@ -225,33 +230,23 @@ func (s *Server) MonitorDetail(c *gin.Context) {
 			nextTime = lastTime
 		}
 		s.Success(c, core.A{
-			"items":     new(models.ServerMonitor).FindByLastTime(lastTime),
+			"items":     items,
 			"next_time": nextTime,
 		})
 	} else {
-		c.HTML(http.StatusOK, "server/monitor", gin.H{})
-	}
-
-}
-
-//查询服务器客户端状态
-func (s *Server) clientStatus(c *gin.Context) {
-	if core.IsAjax(c) {
-		lastTime, _ := strconv.Atoi(c.DefaultQuery("last_time", "0"))
-		items := new(models.ServerMonitor).FindByLastTime(lastTime)
-		nextTime := 0
-		if len(items) > 0 {
-			//nextTime = int(items[len(items) - 1 ]["time"].(core.Timestamp))
-			nextTime = int(time.Now().Unix())
-		} else {
-			nextTime = lastTime
+		serverId, _ := strconv.Atoi(c.DefaultQuery("server_id", "0"))
+		if serverId <= 0 {
+			core.Error(c, core.PromptMsg["parameter_error"])
+			return
 		}
-		s.Success(c, core.A{
-			"items":     new(models.ServerMonitor).FindByLastTime(lastTime),
-			"next_time": nextTime,
+		server := models.Server{}
+		if !server.Get(serverId) {
+			core.Error(c, core.PromptMsg["parameter_error"])
+			return
+		}
+		c.HTML(http.StatusOK, "server/monitor_detail", gin.H{
+			"info": server,
 		})
-	} else {
-		c.HTML(http.StatusOK, "server/monitor", gin.H{})
 	}
 
 }

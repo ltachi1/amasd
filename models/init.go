@@ -165,14 +165,23 @@ CREATE TABLE "server_monitor" (
   "server_id" INTEGER NOT NULL DEFAULT 0,
   "mem_total" INTEGER NOT NULL DEFAULT 0,
   "mem_available" INTEGER NOT NULL,
-  "mem_used_percent" INTEGER NOT NULL DEFAULT 0,
-  "cpu_percent" INTEGER NOT NULL DEFAULT 0,
-  "create_time" INT (10) NOT NULL DEFAULT (0)
+  "mem_used_percent" VARCHAR NOT NULL DEFAULT 0,
+  "cpu_percent" VARCHAR(20) NOT NULL DEFAULT 0,
+  "create_time" INT (10) NOT NULL DEFAULT (0),
+  "cpu_core_count" INTEGER NOT NULL DEFAULT 0,
+  "cpu_load1" VARCHAR(20) NOT NULL DEFAULT 0,
+  "cpu_load5" VARCHAR(20) NOT NULL DEFAULT 0,
+  "cpu_load15" VARCHAR(20) NOT NULL DEFAULT 0,
+  "process_count" INTEGER NOT NULL DEFAULT 0,
+  "net_send_speed" INTEGER NOT NULL DEFAULT 0,
+  "net_receive_speed" INTEGER NOT NULL DEFAULT 0,
+  "mem_used" INTEGER NOT NULL DEFAULT 0
 );
 ALTER TABLE "server" ADD COLUMN "monitor" VARCHAR(20) NOT NULL DEFAULT 'disabled';
 ALTER TABLE "server" ADD COLUMN "monitor_address" VARCHAR(100) NOT NULL DEFAULT '';
 ALTER TABLE "server" ADD COLUMN "monitor_username" VARCHAR(50) NOT NULL DEFAULT '';
 ALTER TABLE "server" ADD COLUMN "monitor_password" VARCHAR(50) NOT NULL DEFAULT '';
+ALTER TABLE "server" ADD COLUMN "agent_status" INT NOT NULL DEFAULT 1;
 `)
 	return err
 }

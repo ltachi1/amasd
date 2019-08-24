@@ -17,7 +17,7 @@ type Server struct {
 	Password        string         `json:"-"`
 	Auth            uint8          `json:"auth"`
 	Status          uint8          `json:"status"`
-	//ClientStatus    uint8          `json:"client_status"`
+	AgentStatus     uint8          `json:"agent_status"`
 	Monitor         string         `json:"monitor"`
 	MonitorAddress  string         `json:"monitor_address"`
 	MonitorUsername string         `json:"monitor_username"`
@@ -27,12 +27,14 @@ type Server struct {
 }
 
 var (
-	ServerStatusNormal    uint8 = 1          //服务器状态正常
-	ServerStatusFault     uint8 = 2          //服务器状态故障
-	ServerAuthClose       uint8 = 1          //服务器验证关闭
-	ServerAuthOpen        uint8 = 2          //服务器验证开启
-	ServerMonitorDisabled       = "disabled" //关闭服务器监控
-	ServerMonitorEnabled        = "enabled"  //开启服务器监控
+	ServerStatusNormal      uint8 = 1          //服务器状态正常
+	ServerStatusFault       uint8 = 2          //服务器状态故障
+	ServerAuthClose         uint8 = 1          //服务器验证关闭
+	ServerAuthOpen          uint8 = 2          //服务器验证开启
+	ServerMonitorDisabled         = "disabled" //关闭服务器监控
+	ServerMonitorEnabled          = "enabled"  //开启服务器监控
+	ServerAgentStatusNormal uint8 = 1          //代理状态正常
+	ServerAgentStatusFault  uint8 = 2          //代理状态故障
 )
 
 //添加服务器
@@ -122,17 +124,18 @@ func (s *Server) Del(id int) (bool, string) {
 	session.Begin()
 	//删除关联服务器
 	if _, err := session.Where("server_id = ?", id).NoAutoCondition().Delete(&ProjectServer{}); err != nil {
-		fmt.Println(1)
 		return false, "del_error"
 	}
 	//删除所有定时任务
 	if _, err := session.Where("server_id = ?", id).NoAutoCondition().Delete(&SchedulesTask{}); err != nil {
-		fmt.Println(2)
 		return false, "del_error"
 	}
 	//删除所有任务
 	if _, err := session.Where("server_id = ?", id).NoAutoCondition().Delete(&Task{}); err != nil {
-		fmt.Println(3)
+		return false, "del_error"
+	}
+	//删除监控记录，如果有的话
+	if _, err := session.Where("server_id = ?", id).NoAutoCondition().Delete(&ServerMonitor{}); err != nil {
 		return false, "del_error"
 	}
 	if _, err := session.Where("id = ?", id).NoAutoCondition().Delete(&Server{}); err != nil {
@@ -195,11 +198,13 @@ func (s *Server) ServerMonitor() {
 					cpu := data["cpu"].(map[string]interface{})
 					mem := data["mem"].(map[string]interface{})
 					net := data["net"].(map[string]interface{})
+
 					serverMonitor := ServerMonitor{
 						ServerId:        server.Id,
 						MemTotal:        int64(mem["total"].(float64)),
 						MemAvailable:    int64(mem["available"].(float64)),
-						MemUsedPercent:  int(mem["used_percent"].(float64)),
+						MemUsed:         int64(mem["used"].(float64)),
+						MemUsedPercent:  mem["used_percent"].(string),
 						CpuPercent:      cpu["percent"].(string),
 						CpuCoreCount:    int(cpu["core_count"].(float64)),
 						CpuLoad1:        cpu["load1"].(string),
@@ -212,6 +217,20 @@ func (s *Server) ServerMonitor() {
 					}
 					serverMonitor.InsertOne()
 					serverMonitor.DelAnHourAgo()
+				}
+				if server.AgentStatus != ServerAgentStatusNormal {
+					err = server.Update(server.Id, core.A{"agent_status": ServerAgentStatusNormal})
+					if err != nil {
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理装状态更新失败:%s", err))
+					}
+				}
+			} else {
+				//代理异常
+				if server.AgentStatus != ServerAgentStatusFault {
+					err = server.Update(server.Id, core.A{"agent_status": ServerAgentStatusFault})
+					if err != nil {
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理装状态更新失败:%s", err))
+					}
 				}
 			}
 		}(server)

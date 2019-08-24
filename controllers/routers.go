@@ -53,6 +53,7 @@ func Register(e *gin.Engine) {
 	postAndGet(e, "/server/server/edit", new(Server).Edit)
 	e.GET("/server/server/del", new(Server).Del)
 	postAndGet(e, "/server/server/monitor", new(Server).Monitor)
+	postAndGet(e, "/server/server/monitorDetail", new(Server).MonitorDetail)
 
 	//爬虫管理
 	postAndGet(e, "/spider/spider/index", new(Spider).Index)
