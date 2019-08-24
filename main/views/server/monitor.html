@@ -15,17 +15,37 @@
 
     <!-- begin:: Content -->
     <div class="kt-content" id="kt_content">
+        {{$l := len .servers}}
+        {{if eq $l 0}}
+            <div class="alert alert-light alert-elevate" role="alert">
+                <div class="alert-text text-center">
+                    暂无可监控服务器
+                    <a href="/server/server/add" class="btn btn-link btn-icon btn-sm">
+                        <i class="fa fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+        {{end}}
         {{range .servers}}
             <div class="kt-portlet kt-portlet--mobile monitor-panel" data-id="{{.Id}}">
                 <div class="kt-portlet__head kt-portlet__head--lg">
                     <div class="kt-portlet__head-label">
                         <h3 class="kt-portlet__head-title">
-                            {{.MonitorAddress}}
+                            {{if eq .Alias ""}}
+                                {{.MonitorAddress}}
+                            {{else}}
+                                {{.Alias}}({{.MonitorAddress}})
+                            {{end}}
                         </h3>
+                        {{if eq .AgentStatus 1}}
+                            <span class="kt-badge kt-badge--inline kt-badge--success kt-margin-l-20" id="agent_status_{{.Id}}">运行中</span>
+                        {{else}}
+                            <span class="kt-badge kt-badge--inline kt-badge--warning kt-margin-l-20" id="agent_status_{{.Id}}">异常</span>
+                        {{end}}
                     </div>
                     <div class="kt-portlet__head-toolbar">
-                        <a href="/project/project/index" class="btn btn-clean kt-margin-r-10">
-                            查看详细
+                        <a href="/server/server/monitorDetail?server_id={{.Id}}" class="btn btn-outline-hover-info btn-icon btn-sm">
+                            <i class="fa fa-angle-right"></i>
                         </a>
                     </div>
                 </div>
@@ -95,6 +115,9 @@
         //查询服务器性能指标
         if(server_ids != "") {
             monitor(server_ids);
+            setInterval(function(){
+                monitor(server_ids);
+            }, 30000);
         }
     });
     function monitor(ids) {
@@ -108,6 +131,11 @@
                     if (result.code == 0) {
                         var items = result.data.items;
                         for(var i = 0; i < items.length; i++) {
+                            if (items[i].agent_status == 1) {
+                                $("#agent_status_" + items[i].server_id).removeClass("kt-badge--warning").addClass("kt-badge--success").html("运行中");
+                            } else {
+                                $("#agent_status_" + items[i].server_id).removeClass("kt-badge--success").addClass("kt-badge--warning").html("异常");
+                            }
                             if (charts["cpu-load-" + items[i].server_id] !== undefined) {
                                 charts["cpu-load-" + items[i].server_id].setOption({
                                     title: {
@@ -116,11 +144,11 @@
                                     series: {
                                         data:[
                                             {
-                                                value: items[i].cpu_load15,
+                                                value: items[i].cpu_load,
                                                 label: {
                                                     normal: {
                                                         formatter: function(params){
-                                                            return (items[i].cpu_load15 / items[i].cpu_core_count) + '%';
+                                                            return items[i].cpu_load + '%';
                                                         },
                                                         position: 'center',
                                                         show: true,
@@ -128,7 +156,7 @@
                                                 },
                                             },
                                             {
-                                                value:items[i].cpu_core_count - items[i].cpu_load15,
+                                                value: 100 - items[i].cpu_load,
                                                 itemStyle: {
                                                     normal: {
                                                         color: '#f2f3f8'
@@ -162,7 +190,7 @@
                                                 },
                                             },
                                             {
-                                                value:100 - (items[i].cpu_percent),
+                                                value:100 - items[i].cpu_percent,
                                                 itemStyle: {
                                                     normal: {
                                                         color: '#f2f3f8'
@@ -179,12 +207,12 @@
                             if (charts["mem-used-" + items[i].server_id] !== undefined) {
                                 charts["mem-used-" + items[i].server_id].setOption({
                                     title: {
-                                        text: '内存使用率 ' + (items[i].mem_total - items[i].mem_available) + "MB/" + items[i].mem_total + "MB",
+                                        text: '内存使用率 ' + items[i].mem_used + "GB/" + items[i].mem_total + "GB",
                                     },
                                     series: {
                                         data:[
                                             {
-                                                value: items[i].mem_total - items[i].mem_available,
+                                                value: items[i].mem_used,
                                                 label: {
                                                     normal: {
                                                         formatter: function(params){
@@ -196,7 +224,7 @@
                                                 },
                                             },
                                             {
-                                                value: items[i].mem_available,
+                                                value: items[i].mem_total - items[i].mem_used,
                                                 itemStyle: {
                                                     normal: {
                                                         color: '#f2f3f8'
