@@ -1,11 +1,11 @@
 package main
 
 import (
-	"scrapyd-admin/core"
+	"amasd/core"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/contrib/sessions"
-	"scrapyd-admin/resource"
-	"scrapyd-admin/controllers"
+	"amasd/resource"
+	"amasd/controllers"
 	"fmt"
 )
 

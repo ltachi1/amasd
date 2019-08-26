@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"github.com/elazarl/go-bindata-assetfs"
-	"scrapyd-admin/resource/assets"
-	"scrapyd-admin/core"
-	"scrapyd-admin/controllers/system"
+	"amasd/resource/assets"
+	"amasd/core"
+	"amasd/controllers/system"
 )
 
 func Register(e *gin.Engine) {

@@ -3,8 +3,8 @@ package system
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/core"
-	"scrapyd-admin/models"
+	"amasd/core"
+	"amasd/models"
 	"strconv"
 	"github.com/ltachi1/logrus"
 	"unicode/utf8"

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"scrapyd-admin/core"
+	"amasd/core"
 	"gopkg.in/gomail.v2"
 	"fmt"
 	"strconv"

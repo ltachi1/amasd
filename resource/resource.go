@@ -2,8 +2,8 @@ package resource
 
 import (
 	"github.com/gin-gonic/gin"
-	"scrapyd-admin/core"
-	"scrapyd-admin/resource/views"
+	"amasd/core"
+	"amasd/resource/views"
 	"strings"
 	"github.com/ltachi1/logrus"
 	"html/template"

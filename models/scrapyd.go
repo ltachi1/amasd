@@ -9,7 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"scrapyd-admin/core"
+	"amasd/core"
 	"github.com/ltachi1/logrus"
 )
 

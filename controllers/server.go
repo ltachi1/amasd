@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"scrapyd-admin/core"
-	"scrapyd-admin/models"
+	"amasd/core"
+	"amasd/models"
 	"strconv"
 	"unicode/utf8"
 	"time"

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"scrapyd-admin/core"
+	"amasd/core"
 	"errors"
 	"github.com/go-xorm/xorm"
 	"github.com/ltachi1/logrus"

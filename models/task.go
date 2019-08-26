@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"scrapyd-admin/core"
+	"amasd/core"
 	"strconv"
 	"strings"
 	"time"

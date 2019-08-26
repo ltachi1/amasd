@@ -2,7 +2,7 @@ package models
 
 import (
 	"mime/multipart"
-	"scrapyd-admin/core"
+	"amasd/core"
 	"strconv"
 	"time"
 	"github.com/ltachi1/logrus"

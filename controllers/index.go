@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"net/http"
-	"scrapyd-admin/core"
-	"scrapyd-admin/models"
+	"amasd/core"
+	"amasd/models"
 )
 
 type Index struct {

@@ -2,7 +2,7 @@ package core
 
 const (
 	//长度16、24、32必须是这三种中的一种，否则加密解密是报错
-	AesSalt           = "scrapyd-admin-salt123456"
+	AesSalt           = "amasd-salt123456"
 	SessionCookieName = "GO_SESSION_ID"
 	SessionExpires    = 1800
 	EnvDev            = "dev"

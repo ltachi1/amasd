@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"html/template"
-	"scrapyd-admin/core"
+	"amasd/core"
 	"regexp"
 	"strings"
 )

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"scrapyd-admin/core"
+	"amasd/core"
 	"github.com/ltachi1/logrus"
 	"fmt"
 	"encoding/json"

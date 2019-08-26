@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"scrapyd-admin/core"
-	"scrapyd-admin/models"
+	"amasd/core"
+	"amasd/models"
 	"strconv"
 	"strings"
 )
