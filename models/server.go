@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"time"
+	"encoding/base64"
 )
 
 type Server struct {
@@ -158,14 +159,14 @@ func (s *Server) DetectionStatus() {
 				Password: server.Password,
 			}
 			if err := scrapyd.DaemonStatus(); err == nil {
-				if server.Status == ServerStatusFault {
+				if server.Status != ServerStatusNormal {
 					core.WriteLog(core.LogTypeServer, logrus.InfoLevel, logrus.Fields{"host": server.Host}, "scrapyd服务恢复正常")
 					if _, error := core.Db.Id(server.Id).Update(&Server{Status: ServerStatusNormal}); error != nil {
 						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务状态更新失败:%s", error))
 					}
 				}
 			} else {
-				if server.Status == ServerStatusNormal {
+				if server.Status != ServerStatusFault {
 					core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("scrapyd服务异常:%s", err))
 					go noticeOptionsDispatch(NoticeOptionScrapyd, core.B{
 						"title":         core.NoticeSettings["scrapyd_service_title"],
@@ -190,7 +191,11 @@ func (s *Server) ServerMonitor() {
 	time := time.Now().Unix()
 	for _, server := range serverList {
 		go func(server Server) {
-			result, err := core.NewCurl().Get(core.CompletionUrl(server.MonitorAddress)+"/status", core.B{})
+			headers := make(core.B, 0)
+			if len(server.MonitorUsername) > 0 && len(server.MonitorPassword) > 0 {
+				headers["Authorization"] = fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", server.MonitorUsername, server.MonitorPassword))))
+			}
+			result, err := core.NewCurl().SetHeaders(headers).Get(core.CompletionUrl(server.MonitorAddress)+"/status", core.B{})
 			if err == nil {
 				str := core.A{}
 				if err = json.Unmarshal(core.Str2bytes(result), &str); err == nil && str["error_code"].(float64) == 0 {
@@ -221,7 +226,7 @@ func (s *Server) ServerMonitor() {
 				if server.AgentStatus != ServerAgentStatusNormal {
 					err = server.Update(server.Id, core.A{"agent_status": ServerAgentStatusNormal})
 					if err != nil {
-						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理装状态更新失败:%s", err))
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理状态更新失败:%s", err))
 					}
 				}
 			} else {
@@ -229,7 +234,7 @@ func (s *Server) ServerMonitor() {
 				if server.AgentStatus != ServerAgentStatusFault {
 					err = server.Update(server.Id, core.A{"agent_status": ServerAgentStatusFault})
 					if err != nil {
-						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理装状态更新失败:%s", err))
+						core.WriteLog(core.LogTypeServer, logrus.ErrorLevel, logrus.Fields{"host": server.Host}, fmt.Sprintf("代理状态更新失败:%s", err))
 					}
 				}
 			}

@@ -35,80 +35,81 @@
                         <div class="kt-portlet__body">
                             <div class="form-group row">
                                 <div class="col-lg-6">
-                                    <label>别名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器别名" name="Alias" maxlength="50" value="">
+                                    <label class="col-form-label">别名</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器别名" name="alias" maxlength="50" value="">
                                     <span class="form-text text-muted">不超过50个字符</span>
                                 </div>
                                 <div class="col-lg-6">
-                                    <label>访问地址 <span class="kt-font-danger">*</span></label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器访问地址" name="Host" maxlength="50" value="">
+                                    <label class="col-form-label">访问地址 <span class="kt-font-danger">*</span></label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器访问地址" name="host" maxlength="50" value="">
                                     <span class="form-text text-muted">不超过50个字符</span>
                                 </div>
 
                             </div>
                             <div class="form-group row">
                                 <div class="col-lg-6">
-                                    <label>服务器验证</label>
+                                    <label class="col-form-label">访问验证</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Auth" value="1" checked onclick="relationServer('no', 'auth-span')"> 否
+                                            <input type="radio" name="auth" value="1" checked onclick="relationServer('no', 'auth-span')"> 否
                                             <span></span>
                                         </label>
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Auth" value="2" onclick="relationServer('yes', 'auth-span')"> 是
+                                            <input type="radio" name="auth" value="2" onclick="relationServer('yes', 'auth-span')"> 是
                                             <span></span>
                                         </label>
                                     </div>
+                                    <span class="form-text text-muted">验证方式是基于Basic HTTP authentication</span>
                                 </div>
                             </div>
                             <div class="form-group row auth-span kt-hidden">
                                 <div class="col-lg-6">
-                                    <label>用户名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器用户名" name="Username" maxlength="20" value="" autocomplete="off">
+                                    <label class="col-form-label">用户名</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入服务器用户名" name="username" maxlength="20" value="" autocomplete="off">
                                     <span class="form-text text-muted">不超过20个字符，没有用户则留空</span>
                                 </div>
                                 <div class="col-lg-6">
-                                    <label>密码</label>
-                                    <input type="password" class="form-control vq-max-length" placeholder="输入服务器密码" name="Password" maxlength="20" value="" autocomplete="new-password">
+                                    <label class="col-form-label">密码</label>
+                                    <input type="password" class="form-control vq-max-length" placeholder="输入服务器密码" name="password" maxlength="20" value="" autocomplete="new-password">
                                     <span class="form-text text-muted">不超过20个字符，没有用户则留空</span>
                                 </div>
                             </div>
                             <div class="kt-separator kt-separator--border-dashed"></div>
                             <div class="form-group row">
                                 <div class="col-lg-6">
-                                    <label>服务器监控</label>
+                                    <label class="col-form-label">性能指标监控</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Monitor" value="disabled" checked onclick="relationServer('no', 'monitor-span')"> 否
+                                            <input type="radio" name="monitor" value="disabled" checked onclick="relationServer('no', 'monitor-span')"> 关闭
                                             <span></span>
                                         </label>
                                         <label class="kt-radio kt-radio--brand">
-                                            <input type="radio" name="Monitor" value="enabled" onclick="relationServer('yes', 'monitor-span')"> 是
+                                            <input type="radio" name="monitor" value="enabled" onclick="relationServer('yes', 'monitor-span')"> 开启
                                             <span></span>
                                         </label>
                                     </div>
+                                    <span class="form-text text-muted">若开启则需要单独下载监控客户端才能收集数据</span>
                                 </div>
                             </div>
                             <div class="form-group row monitor-span kt-hidden">
                                 <div class="col-sm-4">
-                                    <label>监控地址</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址" name="MonitorAddress" maxlength="50" value="" autocomplete="off">
+                                    <label class="col-form-label">地址</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="地址" name="monitorAddress" maxlength="50" value="" autocomplete="off">
                                     <span class="form-text text-muted">不超过50个字符</span>
                                 </div>
                                 <div class="col-sm-4">
-                                    <label>监控地址用户名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址用户名" name="MonitorUsername" maxlength="20" value="" autocomplete="off">
+                                    <label class="col-form-label">访问用户名(不需要验证则无需输入)</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入访问用户名" name="monitorUsername" maxlength="20" value="" autocomplete="off">
                                     <span class="form-text text-muted">不超过20个字符</span>
                                 </div>
                                 <div class="col-sm-4">
-                                    <label>监控地址密码</label>
-                                    <input type="password" class="form-control vq-max-length" placeholder="输入监控地址密码" name="MonitorPassword" maxlength="20" value="" autocomplete="new-password">
+                                    <label class="col-form-label">访问密码</label>
+                                    <input type="password" class="form-control vq-max-length" placeholder="输入访问密码" name="monitorPassword" maxlength="20" value="" autocomplete="new-password">
                                     <span class="form-text text-muted">不超过20个字符</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" name="Status" value="1">
                 </form>
                 <!--end::Portlet-->
             </div>

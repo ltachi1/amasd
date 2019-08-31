@@ -40,57 +40,14 @@ func (s *Server) Index(c *gin.Context) {
 
 func (s *Server) Add(c *gin.Context) {
 	if core.IsAjax(c) {
-		var server models.Server
-		if err := c.ShouldBind(&server); err == nil {
-			if utf8.RuneCountInString(server.Alias) > 50 {
-				s.Fail(c, "extra_long_error", "别名", "50")
-				return
-			}
-			if utf8.RuneCountInString(server.Host) > 50 {
-				s.Fail(c, "extra_long_error", "访问地址", "50")
-				return
-			}
-			if server.Auth == models.ServerAuthClose {
-				server.Username, server.Password = "", ""
-			}
-			if server.Auth == models.ServerAuthOpen && (server.Username == "" || server.Password == "") {
-				s.Fail(c, "server_username_error")
-				return
-			}
-			if utf8.RuneCountInString(server.Username) > 20 {
-				s.Fail(c, "extra_long_error", "用户名", "20")
-				return
-			}
-			if utf8.RuneCountInString(server.Password) > 20 {
-				s.Fail(c, "extra_long_error", "密码", "20")
-				return
-			}
-			if server.Monitor == models.ServerMonitorEnabled && server.MonitorAddress == "" {
-				s.Fail(c, "server_monitor_address_error")
-				return
-			}
-			if len(server.MonitorAddress) > 50 {
-				s.Fail(c, "extra_long_error", "监控地址", "50")
-				return
-			}
-			if len(server.MonitorUsername) > 20 {
-				s.Fail(c, "extra_long_error", "监控地址用户名", "20")
-				return
-			}
-			if len(server.MonitorPassword) > 20 {
-				s.Fail(c, "extra_long_error", "监控地址密码", "20")
-				return
-			}
-
+		if server, ok := s.verifyData("add", c); ok {
+			server.Status = models.ServerStatusNormal
 			if ok, error := server.InsertOne(); !ok {
 				s.Fail(c, error)
 				return
 			}
-		} else {
-			s.Fail(c, "parameter_error")
-			return
+			s.Success(c, nil)
 		}
-		s.Success(c, nil)
 	} else {
 		c.HTML(http.StatusOK, "server/add", gin.H{
 			"projects": new(models.Project).Find(),
@@ -101,70 +58,27 @@ func (s *Server) Add(c *gin.Context) {
 func (s *Server) Edit(c *gin.Context) {
 	if core.IsAjax(c) {
 		id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
-		alias := c.DefaultPostForm("alias", "")
-		auth, _ := strconv.Atoi(c.DefaultPostForm("auth", "1"))
-		username := c.DefaultPostForm("username", "")
-		password := c.DefaultPostForm("password", "")
-		monitor := c.DefaultPostForm("monitor", models.ServerMonitorDisabled)
-		monitorAddress := c.DefaultPostForm("monitor_address", "")
-		monitorUsername := c.DefaultPostForm("monitor_username", "")
-		monitorPassword := c.DefaultPostForm("monitor_password", "")
 		if id <= 0 {
 			s.Fail(c, "parameter_error")
 			return
 		}
-		if utf8.RuneCountInString(alias) > 50 {
-			s.Fail(c, "extra_long_error", "别名", "50")
-			return
+		if server, ok := s.verifyData("edit", c); ok {
+			data := core.A{
+				"alias":            server.Alias,
+				"auth":             server.Auth,
+				"username":         server.Username,
+				"password":         server.Password,
+				"monitor":          server.Monitor,
+				"monitor_address":  server.MonitorAddress,
+				"monitor_username": server.MonitorUsername,
+				"monitor_password": server.MonitorPassword,
+			}
+			if new(models.Server).Update(id, data) != nil {
+				s.Fail(c, "update_error")
+				return
+			}
+			s.Success(c, nil)
 		}
-		if uint8(auth) == models.ServerAuthClose {
-			username, password = "", ""
-		}
-		if uint8(auth) == models.ServerAuthOpen && (username == "" || password == "") {
-			s.Fail(c, "server_username_error")
-			return
-		}
-		if utf8.RuneCountInString(username) > 20 {
-			s.Fail(c, "extra_long_error", "用户名", "20")
-			return
-		}
-		if utf8.RuneCountInString(password) > 20 {
-			s.Fail(c, "extra_long_error", "密码", "20")
-			return
-		}
-		if monitor == models.ServerMonitorEnabled && monitorAddress == "" {
-			s.Fail(c, "server_monitor_address_error")
-			return
-		}
-		if len(monitorAddress) > 50 {
-			s.Fail(c, "extra_long_error", "监控地址", "50")
-			return
-		}
-		if len(monitorUsername) > 20 {
-			s.Fail(c, "extra_long_error", "监控地址用户名", "20")
-			return
-		}
-		if len(monitorPassword) > 20 {
-			s.Fail(c, "extra_long_error", "监控地址密码", "20")
-			return
-		}
-
-		data := core.A{
-			"alias":            alias,
-			"auth":             auth,
-			"username":         username,
-			"password":         password,
-			"monitor":          monitor,
-			"monitor_address":  monitorAddress,
-			"monitor_username": monitorUsername,
-			"monitor_password": monitorPassword,
-		}
-
-		if new(models.Server).Update(id, data) != nil {
-			s.Fail(c, "update_error")
-			return
-		}
-		s.Success(c, nil)
 	} else {
 		id, _ := strconv.Atoi(c.DefaultQuery("id", "0"))
 		server := new(models.Server)
@@ -176,6 +90,90 @@ func (s *Server) Edit(c *gin.Context) {
 			"info": server,
 		})
 	}
+}
+
+func (s *Server) verifyData(t string, c *gin.Context) (models.Server, bool) {
+	alias := strings.Trim(c.DefaultPostForm("alias", ""), " ")
+	host := strings.Trim(c.DefaultPostForm("host", ""), " ")
+	authInt, _ := strconv.Atoi(c.DefaultPostForm("auth", strconv.Itoa(int(models.ServerAuthClose))))
+	auth := uint8(authInt)
+	username := strings.Trim(c.DefaultPostForm("username", ""), " ")
+	password := strings.Trim(c.DefaultPostForm("password", ""), " ")
+	monitor := strings.Trim(c.DefaultPostForm("monitor", models.ServerMonitorDisabled), " ")
+	monitorAddress := strings.Trim(c.DefaultPostForm("monitorAddress", ""), " ")
+	monitorUsername := strings.Trim(c.DefaultPostForm("monitorUsername", ""), " ")
+	monitorPassword := strings.Trim(c.DefaultPostForm("monitorPassword", ""), " ")
+
+	server := models.Server{}
+	if utf8.RuneCountInString(alias) > 50 {
+		s.Fail(c, "extra_long_error", "别名", "50")
+		return server, false
+	}
+	if t == "add" {
+		if len(host) == 0 {
+			s.Fail(c, "parameter_required")
+			return server, false
+		}
+		if utf8.RuneCountInString(host) > 50 {
+			s.Fail(c, "extra_long_error", "访问地址", "50")
+			return server, false
+		}
+	}
+	if auth != models.ServerAuthClose && auth != models.ServerAuthOpen {
+		s.Fail(c, "parameter_error")
+		return server, false
+	}
+	if auth == models.ServerAuthClose {
+		username, password = "", ""
+	}
+	if auth == models.ServerAuthOpen && (username == "" || password == "") {
+		s.Fail(c, "server_username_error")
+		return server, false
+	}
+	if utf8.RuneCountInString(username) > 20 {
+		s.Fail(c, "extra_long_error", "用户名", "20")
+		return server, false
+	}
+	if utf8.RuneCountInString(password) > 20 {
+		s.Fail(c, "extra_long_error", "密码", "20")
+		return server, false
+	}
+	if monitor != models.ServerMonitorEnabled && monitor != models.ServerMonitorDisabled {
+		s.Fail(c, "parameter_error")
+		return server, false
+	}
+	if monitor == models.ServerMonitorEnabled && monitorAddress == "" {
+		s.Fail(c, "server_monitor_address_error")
+		return server, false
+	}
+	if len(monitorAddress) > 50 {
+		s.Fail(c, "extra_long_error", "监控地址", "50")
+		return server, false
+	}
+	if len(monitorUsername) > 20 {
+		s.Fail(c, "extra_long_error", "监控访问用户名", "20")
+		return server, false
+	}
+	if len(monitorPassword) > 20 {
+		s.Fail(c, "extra_long_error", "监控访问密码", "20")
+		return server, false
+	}
+	if len(monitorUsername) > 0 && len(monitorPassword) == 0 {
+		s.Fail(c, "server_monitor_password_error")
+		return server, false
+	}
+	if t == "add" {
+		server.Host = host
+	}
+	server.Alias = alias
+	server.Auth = auth
+	server.Username = username
+	server.Password = password
+	server.Monitor = monitor
+	server.MonitorAddress = monitorAddress
+	server.MonitorUsername = monitorUsername
+	server.MonitorPassword = monitorPassword
+	return server, true
 }
 
 func (s *Server) Del(c *gin.Context) {

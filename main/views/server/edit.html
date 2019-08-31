@@ -48,7 +48,7 @@
                             </div>
                             <div class="form-group row">
                                 <div class="col-lg-6">
-                                    <label>服务器验证</label>
+                                    <label>访问验证</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
                                             <input type="radio" name="auth" value="1" {{if eq .info.Auth 1}}checked{{end}} onclick="relationServer('no', 'auth-span')"> 否
@@ -59,8 +59,8 @@
                                             <span></span>
                                         </label>
                                     </div>
+                                    <span class="form-text text-muted">验证方式是基于Basic HTTP authentication</span>
                                 </div>
-
                             </div>
                             <div class="form-group row auth-span {{if eq .info.Auth 1}}kt-hidden{{end}}">
                                 <div class="col-lg-6">
@@ -77,7 +77,7 @@
                             <div class="kt-separator kt-separator--border-dashed"></div>
                             <div class="form-group row">
                                 <div class="col-lg-6">
-                                    <label>服务器监控</label>
+                                    <label>性能指标监控</label>
                                     <div class="kt-radio-inline">
                                         <label class="kt-radio kt-radio--brand">
                                             <input type="radio" name="monitor" value="disabled" {{if eq .info.Monitor "disabled"}}checked{{end}} onclick="relationServer('no', 'monitor-span')"> 否
@@ -88,22 +88,23 @@
                                             <span></span>
                                         </label>
                                     </div>
+                                    <span class="form-text text-muted">若开启则需要单独下载监控客户端才能收集数据</span>
                                 </div>
                             </div>
                             <div class="form-group row monitor-span {{if eq .info.Monitor "disabled"}}kt-hidden{{end}}">
                                 <div class="col-sm-4">
-                                    <label>监控地址</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址" name="monitor_address" maxlength="50" value="{{.info.MonitorAddress}}" autocomplete="off">
+                                    <label>地址</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址" name="monitorAddress" maxlength="50" value="{{.info.MonitorAddress}}" autocomplete="off">
                                     <span class="form-text text-muted">不超过50个字符</span>
                                 </div>
                                 <div class="col-sm-4">
-                                    <label>监控地址用户名</label>
-                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址用户名" name="monitor_username" maxlength="20" value="{{.info.MonitorUsername}}" autocomplete="off">
+                                    <label>访问用户名(不需要验证则无需输入)</label>
+                                    <input type="text" class="form-control vq-max-length" placeholder="输入监控地址用户名" name="monitorUsername" maxlength="20" value="{{.info.MonitorUsername}}" autocomplete="off">
                                     <span class="form-text text-muted">不超过20个字符</span>
                                 </div>
                                 <div class="col-sm-4">
-                                    <label>监控地址密码</label>
-                                    <input type="password" class="form-control vq-max-length" placeholder="输入监控地址密码" name="monitor_password" maxlength="20" value="{{.info.MonitorPassword}}" autocomplete="new-password">
+                                    <label>访问密码</label>
+                                    <input type="password" class="form-control vq-max-length" placeholder="输入监控地址密码" name="monitorPassword" maxlength="20" value="{{.info.MonitorPassword}}" autocomplete="new-password">
                                     <span class="form-text text-muted">不超过20个字符</span>
                                 </div>
                             </div>

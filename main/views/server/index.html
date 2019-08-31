@@ -77,7 +77,7 @@
                     title: '别名'
                 }, {
                     field: 'status',
-                    title: '状态',
+                    title: 'Scrapyd状态',
                     template: function(row, index, datatable){
                         if (row.status == "1"){
                             return `<span class="kt-badge kt-badge--success kt-badge--inline">正常</span>`;
@@ -87,12 +87,26 @@
                     }
                 }, {
                     field: 'monitor',
-                    title: '监控状态',
+                    title: '性能监控',
                     template: function(row, index, datatable){
                         if (row.monitor == "enabled"){
-                            return `<span class="kt-badge kt-badge--success kt-badge--inline">开启</span>`;
+                            return `<span class="kt-badge kt-badge--success kt-badge--inline">监控中</span>`;
                         }else if (row.status == "disabled"){
-                            return `<span class="kt-badge kt-badge--warning kt-badge--inline">关闭</span>`;
+                            return `<span class="kt-badge kt-badge--warning kt-badge--inline">未开启</span>`;
+                        }
+                    }
+                }, {
+                    field: 'agent_status',
+                    title: '代理状态',
+                    template: function(row, index, datatable){
+                        if (row.monitor == "enabled"){
+                            if (row.agent_status == 1){
+                                return `<span class="kt-badge kt-badge--success kt-badge--inline">正常</span>`;
+                            }else if (row.agent_status == 2){
+                                return `<span class="kt-badge kt-badge--warning kt-badge--inline">故障</span>`;
+                            }
+                        } else {
+                            return `<span class="kt-badge kt-badge--danger kt-badge--inline">未知</span>`;
                         }
                     }
                 }, {

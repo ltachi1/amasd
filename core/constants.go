@@ -3,7 +3,7 @@ package core
 const (
 	//长度16、24、32必须是这三种中的一种，否则加密解密是报错
 	AesSalt           = "amasd-salt123456"
-	SessionCookieName = "GO_SESSION_ID"
+	SessionCookieName = "AMASD_SESSION_ID"
 	SessionExpires    = 1800
 	EnvDev            = "dev"
 	EnvTesting        = "testing"
@@ -27,11 +27,12 @@ var (
 		"fail":     "未知错误", //通用未知错误码，如系统错误等
 		"no_login": "重新登录", //需要登录统一码
 
-		"parameter_error":  "参数错误",
-		"add_error":        "添加失败",
-		"update_error":     "更新失败",
-		"del_error":        "删除失败",
-		"extra_long_error": "%s最多可输入%s字符",
+		"parameter_error":    "参数错误",
+		"parameter_required": "请输入必填项",
+		"add_error":          "添加失败",
+		"update_error":       "更新失败",
+		"del_error":          "删除失败",
+		"extra_long_error":   "%s最多可输入%s字符",
 		//token相关
 		"token_valid":   "Token 无效",
 		"token_expired": "Token 过期",
@@ -48,6 +49,7 @@ var (
 		"server_cutback_task_running_error": "所减少的服务器有正在运行的爬虫或者定时任务，请先删除或者停止",
 		"server_del_task_running_error":     "此服务器有正在运行的爬虫或者定时任务，请先删除或者停止",
 		"server_monitor_address_error":      "请输入监控地址",
+		"server_monitor_password_error":     "请输入监控访问密码",
 		//项目相关
 		"project_name_repeat":               "项目名称重复，请重新输入",
 		"project_version_repeat":            "项目版本号重复，请重新输入",

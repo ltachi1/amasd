@@ -11,11 +11,7 @@ import (
 
 func main() {
 	e := gin.Default()
-	//增加默认异常捕捉程序
-	//e.Use(core.RecoveryWithWriter())
-	//设置session有效期以及存储路径
-	//store, _ := sessions.NewRedisStore(10, "tcp", fmt.Sprintf("%s:%s", "127.0.0.1", config.Conf.Redis.Master.Port), "", []byte("secret"))
-	store := sessions.NewCookieStore([]byte("secret"))
+	store := sessions.NewCookieStore([]byte(core.AesSalt))
 	store.Options(sessions.Options{
 		MaxAge: core.SessionExpires,
 		Path:   "/",
@@ -29,6 +25,9 @@ func main() {
 
 	//初始化路由
 	controllers.Register(e)
+
+	//增加默认异常捕捉程序
+	e.Use(core.RecoveryWithWriter())
 
 	e.Run(fmt.Sprintf(":%s", core.HttpPort))
 
