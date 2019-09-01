@@ -22,10 +22,10 @@ Amasd是一款使用golang编写的基于scrapyd的scrapy爬虫部署工具，�
 
 #### 部分功能界面截图
 - 服务器性能概览
-![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor.jpg)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor.png)
 
 - 服务器近一小时性能数据
-![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor_detail.jpg)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor_detail.png)
 
 - 通知设置
 ![image](https://github.com/ltachi1/amasd/raw/dev/images/notice.png)
