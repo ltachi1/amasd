@@ -22,20 +22,20 @@ Amasd是一款使用golang编写的基于scrapyd的scrapy爬虫部署工具，�
 
 #### 部分功能界面截图
 - 服务器性能概览
-![image](https://github.com/ltachi1/amasd/raw/master/images/monitor.jpg)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor.jpg)
 
 - 服务器近一小时性能数据
-![image](https://github.com/ltachi1/amasd/raw/master/images/monitor_detail.jpg)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/monitor_detail.jpg)
 
 - 通知设置
-![image](https://github.com/ltachi1/amasd/raw/master/images/notice.png)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/notice.png)
 
 - 任务完成通知设置
-![image](https://github.com/ltachi1/amasd/raw/master/images/notice_task_finished.png)
+![image](https://github.com/ltachi1/amasd/raw/dev/images/notice_task_finished.png)
 
 #### Scrapy 课程推荐(本人已看完此教程所有视频,并且还在不断更新中)
 - 课程内容：Python基础+脚本爬虫+Scrapy框架+实战训练
 - 涵盖功能：数据提取、数据入库、模拟登录、反爬和反反爬、代理IP管理
 - 课程优势：一对一专业答疑，远程调配环境，爬虫思路指导
 - 课程链接：https://study.163.com/course/courseMain.htm?courseId=1003729016&share=2&shareId=3749780
-- ![image](https://github.com/ltachi1/amasd/raw/master/images/scrapy.jpg)
+- ![image](https://github.com/ltachi1/amasd/raw/dev/images/scrapy.jpg)
